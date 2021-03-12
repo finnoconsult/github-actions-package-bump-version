@@ -21,7 +21,7 @@ const getPR = async () => {
     core.debug(`pr labels: ${JSON.stringify(pr.labels)}`);
     core.debug(`pr data ${JSON.stringify(pr.requested_reviewers)}`);
 
-    console.log('returning pr data', pr);
+    // console.log('returning pr data', pr);
     return pr;
   } catch (error) {
     core.setFailed(`Could not retrieve pr: ${error}`)
@@ -100,9 +100,11 @@ async function run() {
     const newVersion = semver.inc(previousVersion, releaseType)
     core.debug(`Bumping ${previousVersion} to ${newVersion}`)
 
-    packageJSON.version = newVersion
 
     try {
+      const packageJSON = await execCommand('cat', [pathToPackage], JSON.parse);
+      console.log('packageJSON', packageJSON);
+      packageJSON.version = newVersion
       fs.writeFileSync(pathToPackage, JSON.stringify(packageJSON, null, 2))
     } catch (error) {
       core.setFailed(`Error writing package.json: ${error.message}`)
