@@ -34,6 +34,21 @@ __nccwpck_require__.r(__webpack_exports__);
 
 const workspace = process.env.GITHUB_WORKSPACE
 
+const token = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('github_token', {required: true});
+const octokit = new _actions_github__WEBPACK_IMPORTED_MODULE_1__.getOctokit(token);
+const context = _actions_github__WEBPACK_IMPORTED_MODULE_1__.context;
+const prInfo = {
+  owner: context.issue.owner,
+  repo: context.issue.repo,
+  pull_number: context.issue.number
+};
+
+
+const getPRCommits = async() => {
+  const { data: commits } = await octokit.pulls.listCommits(prInfo);
+  return commits;
+}
+
 const getPR = async () => {
   try {
     const { data: pr } = await octokit.pulls.get(prInfo);
@@ -44,35 +59,72 @@ const getPR = async () => {
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`pr requested_reviewers ${JSON.stringify(pr.requested_reviewers)}`);
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`pr assignees ${JSON.stringify(pr.assignees)}`);
 
-    const { data: pr } = await octokit.pulls.get({
-      owner: context.issue.owner,
-      repo: context.issue.repo,
-      pull_number: context.issue.number
-    });
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`got pr data`);
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`pr title ${pr.title}`);
-    console.log('pr title', pr.title);
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`pr data ${JSON.stringify(pr)}`);
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`pr data ${JSON.stringify(pr)}`);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('pr', pr);
 
-    console.log('returning pr data');
+    // const commits = await getPRCommits(prInfo);
+    // core.setOutput('first_commit_sha', commits && commits[0].sha);
+    // core.setOutput('commits', commits);
+
     return pr;
   } catch (error) {
-    console.log()
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(`Could not retrieve labels: ${error}`)
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(`Could not retrieve pr: ${error}`)
     return {}
   }
 }
 
-const getPRLabels = async () => {
-  try {
-    const pr = getPR();
-    console.log('getPRLabels', pr.labels);
+
+
+const validateCommandResults = ({output, error}) => {
+  if (error !== '') {
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(`Error getting command: ${error}`)
+  }
+
+  if (output === '') {
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed('Error: response is empty')
+  }
+
+  return output
+}
+
+
+const execCommand = async (command, args, callback) => {
+
+  let output = ''
+  let error = ''
+
+  const options = {}
+  options.listeners = {
+    stdout: (data) => {
+      output += data.toString()
+    },
+    stderr: (data) => {
+      error += data.toString()
+    }
+  }
+
+  await _actions_exec__WEBPACK_IMPORTED_MODULE_2__.exec(command, args, options)
+
+  return callback(validateCommandResults({output, error}))
+}
+
+const getPackageJSONMaster = async (pathToPackage) => {
+  const content = await execCommand('git', ['show', pathToPackage], JSON.parse);
+  return content;
+}
+
+const getPackageJSONLocal = async (pathToPackage) => {
+  const content = await execCommand('cat', [pathToPackage], JSON.parse);
+  return content;
+}
+
+const getSource = async (source) => {
+  const pr = await getPR();
+  switch(source) {
+  case 'label':
     return pr.labels.map(label => label.name);
-  } catch (error) {
-    console.log()
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(`Could not retrieve labels: ${error}`)
-    return []
+  case 'title':
+  default:
+    return [pr.title];
   }
 }
 
@@ -102,11 +154,7 @@ async function run() {
     // input
     const previousVersionInput = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('previous_version');
 
-    const previousVersion = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('previous_version')
-
-    const validMajorLabel = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('major_pattern')
-    const validMinorLabel = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('minor_pattern')
-    const validPatchLabel = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('patch_pattern')
+    const pathToPackage = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('package_json_path') || path__WEBPACK_IMPORTED_MODULE_4___default().join(workspace, 'package.json')
 
     const defaultBranch = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('default_branch') || 'remotes/origin/master';
 
@@ -118,12 +166,8 @@ async function run() {
       patch: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('patch_pattern') || '^fix',
     }
 
-    const prLabels = await getPRLabels()
-    console.log(`prLabels: ${prLabels.join(',')}`)
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`prLabels: ${prLabels.join(',')}`)
-    const versionLabelsOnPR = Object.keys(inputMappedToVersion).filter(
-      validLabel => prLabels.includes(validLabel)
-    )
+    // config
+    await _actions_exec__WEBPACK_IMPORTED_MODULE_2__.exec('git', ['fetch', `--all`]);
 
     const packageJSONLocal = await getPackageJSONLocal(pathToPackage);
     const packageJSONMaster = await getPackageJSONMaster(`${defaultBranch}:${pathToPackage}`);
@@ -10330,7 +10374,7 @@ module.exports = require("zlib");;
 /************************************************************************/
 /******/ 	// The module cache
 /******/ 	var __webpack_module_cache__ = {};
-/******/
+/******/ 	
 /******/ 	// The require function
 /******/ 	function __nccwpck_require__(moduleId) {
 /******/ 		// Check if module is in cache
@@ -10343,7 +10387,7 @@ module.exports = require("zlib");;
 /******/ 			// no module.loaded needed
 /******/ 			exports: {}
 /******/ 		};
-/******/
+/******/ 	
 /******/ 		// Execute the module function
 /******/ 		var threw = true;
 /******/ 		try {
@@ -10352,11 +10396,11 @@ module.exports = require("zlib");;
 /******/ 		} finally {
 /******/ 			if(threw) delete __webpack_module_cache__[moduleId];
 /******/ 		}
-/******/
+/******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
-/******/
+/******/ 	
 /************************************************************************/
 /******/ 	/* webpack/runtime/compat get default export */
 /******/ 	(() => {
@@ -10369,7 +10413,7 @@ module.exports = require("zlib");;
 /******/ 			return getter;
 /******/ 		};
 /******/ 	})();
-/******/
+/******/ 	
 /******/ 	/* webpack/runtime/define property getters */
 /******/ 	(() => {
 /******/ 		// define getter functions for harmony exports
@@ -10381,12 +10425,12 @@ module.exports = require("zlib");;
 /******/ 			}
 /******/ 		};
 /******/ 	})();
-/******/
+/******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */
 /******/ 	(() => {
 /******/ 		__nccwpck_require__.o = (obj, prop) => Object.prototype.hasOwnProperty.call(obj, prop)
 /******/ 	})();
-/******/
+/******/ 	
 /******/ 	/* webpack/runtime/make namespace object */
 /******/ 	(() => {
 /******/ 		// define __esModule on exports
@@ -10397,9 +10441,9 @@ module.exports = require("zlib");;
 /******/ 			Object.defineProperty(exports, '__esModule', { value: true });
 /******/ 		};
 /******/ 	})();
-/******/
+/******/ 	
 /******/ 	/* webpack/runtime/compat */
-/******/
+/******/ 	
 /******/ 	__nccwpck_require__.ab = __dirname + "/";/************************************************************************/
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
