@@ -6,7 +6,7 @@ import fs from 'fs'
 
 const workspace = process.env.GITHUB_WORKSPACE
 
-const getPRLabels = async () => {
+const getPR = async () => {
   try {
     const token = core.getInput('github_token', {required: true})
     const octokit = new github.getOctokit(token)
@@ -22,11 +22,29 @@ const getPRLabels = async () => {
       owner: context.issue.owner,
       repo: context.issue.repo,
       pull_number: context.issue.number
-    })
+    });
+    core.debug(`got pr data`);
+    core.debug(`pr title ${pr.title}`);
+    console.log('pr title', pr.title);
+    core.debug(`pr data ${JSON.stringify(pr)}`);
     core.debug(`pr data ${JSON.stringify(pr)}`);
 
-    return pr.labels.map(label => label.name)
+    console.log('returning pr data');
+    return pr;
   } catch (error) {
+    console.log()
+    core.setFailed(`Could not retrieve labels: ${error}`)
+    return {}
+  }
+}
+
+const getPRLabels = async () => {
+  try {
+    const pr = getPR();
+    console.log('getPRLabels', pr.labels);
+    return pr.labels.map(label => label.name);
+  } catch (error) {
+    console.log()
     core.setFailed(`Could not retrieve labels: ${error}`)
     return []
   }
