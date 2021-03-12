@@ -30,6 +30,26 @@ const getPR = async () => {
 }
 
 
+const execCommand = async (command, args, callback) => {
+
+  let output = ''
+  let error = ''
+
+  const options = {}
+  options.listeners = {
+    stdout: (data) => {
+      output += data.toString()
+    },
+    stderr: (data) => {
+      error += data.toString()
+    }
+  }
+
+  await exec.exec(command, args, options)
+
+  return callback(validateCommandResults({output, error}))
+}
+
 const getSource = async (source) => {
   const pr = await getPR();
   switch(source) {
