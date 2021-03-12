@@ -45,7 +45,7 @@ const getPR = async () => {
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`pr labels: ${JSON.stringify(pr.labels)}`);
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`pr data ${JSON.stringify(pr.requested_reviewers)}`);
 
-    console.log('returning pr data', pr);
+    // console.log('returning pr data', pr);
     return pr;
   } catch (error) {
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(`Could not retrieve pr: ${error}`)
@@ -124,9 +124,11 @@ async function run() {
     const newVersion = semver__WEBPACK_IMPORTED_MODULE_2__.inc(previousVersion, releaseType)
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`Bumping ${previousVersion} to ${newVersion}`)
 
-    packageJSON.version = newVersion
 
     try {
+      const packageJSON = await execCommand('cat', [pathToPackage], JSON.parse);
+      console.log('packageJSON', packageJSON);
+      packageJSON.version = newVersion
       fs__WEBPACK_IMPORTED_MODULE_4___default().writeFileSync(pathToPackage, JSON.stringify(packageJSON, null, 2))
     } catch (error) {
       _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(`Error writing package.json: ${error.message}`)
