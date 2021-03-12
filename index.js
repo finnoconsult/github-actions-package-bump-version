@@ -10,6 +10,8 @@ const getPR = async () => {
   try {
     const token = core.getInput('github_token', {required: true})
     const octokit = new github.getOctokit(token)
+    console.log('token', token);
+    console.log('octokit', octokit);
     const context = github.context
 
     console.log('get pr', {
@@ -32,8 +34,8 @@ const getPR = async () => {
     console.log('returning pr data');
     return pr;
   } catch (error) {
-    console.log('error', error);
-    core.setFailed(`Could not retrieve labels: ${error}`)
+    console.error('Could not retrieve pr', error);
+    core.setFailed(`Could not retrieve pr: ${error}`)
     return {}
   }
 }
@@ -44,7 +46,7 @@ const getPRLabels = async () => {
     console.log('getPRLabels', pr.labels);
     return pr.labels.map(label => label.name);
   } catch (error) {
-    console.log()
+    console.error('Could not retrieve labels', error);
     core.setFailed(`Could not retrieve labels: ${error}`)
     return []
   }
