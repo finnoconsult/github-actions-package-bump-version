@@ -16,15 +16,24 @@ const prInfo = {
   pull_number: context.issue.number
 };
 
+
+const getPRCommits = async() => {
+  const { data: commits } = await octokit.pulls.listCommits(prInfo);
+  return commits;
+}
+
 const getPR = async () => {
   try {
     const { data: pr } = await octokit.pulls.get(prInfo);
     core.info(`pr meta: ${pr.number} ${pr.state}: ${pr.title}|${pr.body}`);
     core.debug(`pr labels: ${JSON.stringify(pr.labels)}`);
-    core.debug(`pr commits: ${JSON.stringify(pr.comments)}`);
+    core.debug(`pr comments: ${JSON.stringify(pr.comments)}`);
     // NOTE: these seems to be empty every time
     core.debug(`pr requested_reviewers ${JSON.stringify(pr.requested_reviewers)}`);
     core.debug(`pr assignees ${JSON.stringify(pr.assignees)}`);
+
+    const commits = getPRCommits(prInfo);
+    console.log('commits', commits);
 
     return pr;
   } catch (error) {
@@ -33,10 +42,7 @@ const getPR = async () => {
   }
 }
 
-// const getPRCommits = async() => {
-//   const commits = await octokit.pulls.listCommits(prInfo);
-//   return commits;
-// }
+
 
 const validateCommandResults = ({output, error}) => {
   if (error !== '') {
