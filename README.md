@@ -29,9 +29,8 @@ Forked from https://github.com/copapow/version-bump-package
     echo "New Version: ${{ steps.bump.outputs.new_version }}"
 ```
 
-## But Why?
+## Usage
 
 With input param 'source' it can operate with PR labels, and also PR.
 
 The action doesn't do any commit by itself, it also requires a subsequent commit action, not to loose the updated package.json
-See .github/workdlows/approve-pr.yml in this repo, to see how I use this action with commit to auto commit the new version to package.json. That bypasses the caveat with [GitHub's protected branch features](https://docs.github.com/en/github/administering-a-repository/about-protected-branches), and uses auto-merge after approvals.
