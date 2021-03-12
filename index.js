@@ -22,9 +22,10 @@ const getPR = async () => {
     core.info(`pr meta: ${pr.number} ${pr.state}: ${pr.title}|${pr.body}`);
     core.debug(`pr labels: ${JSON.stringify(pr.labels)}`);
     core.debug(`pr commits: ${JSON.stringify(pr.comments)}`);
+    // NOTE: these seems to be empty every time
     core.debug(`pr requested_reviewers ${JSON.stringify(pr.requested_reviewers)}`);
+    core.debug(`pr assignees ${JSON.stringify(pr.assignees)}`);
 
-    console.log('returning pr data', pr);
     return pr;
   } catch (error) {
     core.setFailed(`Could not retrieve pr: ${error}`)

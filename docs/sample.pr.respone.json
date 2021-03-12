@@ -1,0 +1,100 @@
+{
+  url: 'https://api.github.com/repos/finnoconsult/ci-playground/pulls/58',
+  id: 591183880,
+  node_id: 'MDExOlB1bGxSZXF1ZXN0NTkxMTgzODgw',
+  html_url: 'https://github.com/finnoconsult/ci-playground/pull/58',
+  diff_url: 'https://github.com/finnoconsult/ci-playground/pull/58.diff',
+  patch_url: 'https://github.com/finnoconsult/ci-playground/pull/58.patch',
+  issue_url: 'https://api.github.com/repos/finnoconsult/ci-playground/issues/58',
+  number: 58,
+  state: 'open',
+  locked: false,
+  title: 'feature for approve pró',
+  user: {
+    login: 'pitiboy',
+    id: 28708898,
+    node_id: 'MDQ6VXNlcjI4NzA4ODk4',
+    avatar_url: 'https://avatars.githubusercontent.com/u/28708898?v=4',
+    gravatar_id: '',
+    url: 'https://api.github.com/users/pitiboy',
+    html_url: 'https://github.com/pitiboy',
+    followers_url: 'https://api.github.com/users/pitiboy/followers',
+    following_url: 'https://api.github.com/users/pitiboy/following{/other_user}',
+    gists_url: 'https://api.github.com/users/pitiboy/gists{/gist_id}',
+    starred_url: 'https://api.github.com/users/pitiboy/starred{/owner}{/repo}',
+    subscriptions_url: 'https://api.github.com/users/pitiboy/subscriptions',
+    organizations_url: 'https://api.github.com/users/pitiboy/orgs',
+    repos_url: 'https://api.github.com/users/pitiboy/repos',
+    events_url: 'https://api.github.com/users/pitiboy/events{/privacy}',
+    received_events_url: 'https://api.github.com/users/pitiboy/received_events',
+    type: 'User',
+    site_admin: false
+  },
+  body: '',
+  created_at: '2021-03-11T21:23:47Z',
+  updated_at: '2021-03-12T15:51:41Z',
+  closed_at: null,
+  merged_at: null,
+  merge_commit_sha: 'de79fdc54f5fd82c1441c0b0bfa1f50649c66ec3',
+  assignee: null,
+  assignees: [],
+  requested_reviewers: [],
+  requested_teams: [],
+  labels: [
+    {
+      id: 2813627136,
+      node_id: 'MDU6TGFiZWwyODEzNjI3MTM2',
+      url: 'https://api.github.com/repos/finnoconsult/ci-playground/labels/feat',
+      name: 'feat',
+      color: '1D76DB',
+      mirror_url: null,
+      archived: false,
+      disabled: false,
+      open_issues_count: 1,
+      license: null,
+      forks: 0,
+      open_issues: 1,
+      watchers: 0,
+      default_branch: 'master'
+    }
+  },
+  _links: {
+    self: {
+      href: 'https://api.github.com/repos/finnoconsult/ci-playground/pulls/58'
+    },
+    html: { href: 'https://github.com/finnoconsult/ci-playground/pull/58' },
+    issue: {
+      href: 'https://api.github.com/repos/finnoconsult/ci-playground/issues/58'
+    },
+    comments: {
+      href: 'https://api.github.com/repos/finnoconsult/ci-playground/issues/58/comments'
+    },
+    review_comments: {
+      href: 'https://api.github.com/repos/finnoconsult/ci-playground/pulls/58/comments'
+    },
+    review_comment: {
+      href: 'https://api.github.com/repos/finnoconsult/ci-playground/pulls/comments{/number}'
+    },
+    commits: {
+      href: 'https://api.github.com/repos/finnoconsult/ci-playground/pulls/58/commits'
+    },
+    statuses: {
+      href: 'https://api.github.com/repos/finnoconsult/ci-playground/statuses/f9bc02502bf8118ad2883eb2eaf28e8f4f668f52'
+    }
+  },
+  author_association: 'CONTRIBUTOR',
+  auto_merge: null,
+  active_lock_reason: null,
+  merged: false,
+  mergeable: true,
+  rebaseable: true,
+  mergeable_state: 'blocked',
+  merged_by: null,
+  comments: 0,
+  review_comments: 0,
+  maintainer_can_modify: false,
+  commits: 51,
+  additions: 234,
+  deletions: 70,
+  changed_files: 5
+}
