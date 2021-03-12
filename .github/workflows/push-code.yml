@@ -28,4 +28,4 @@ jobs:
           dist/sourcemap-register.js
           dist/package.json
         commit-message: 'CI: build and add files to dist/ [skip ci]'
-        # ref: refs/heads/master
+        ref: ${{github.ref}}
