@@ -32,11 +32,11 @@ const getPR = async () => {
 
 const validateCommandResults = ({output, error}) => {
   if (error !== '') {
-    core.setFailed(`Error getting package.json: ${error}`)
+    core.setFailed(`Error getting command: ${error}`)
   }
 
   if (output === '') {
-    core.setFailed('Error: package.json is empty')
+    core.setFailed('Error: response is empty')
   }
 
   return output
@@ -98,7 +98,7 @@ export const getBumpTypes = (sourceArray, bumpTypes) => {
 async function run() {
   try {
     // input
-    const defaultBranch = core.getInput('default_branch') || 'master';
+    const defaultBranch = core.getInput('default_branch') || 'remotes/origin/master';
 
     const previousVersionInput = core.getInput('previous_version');
 
@@ -114,8 +114,8 @@ async function run() {
 
     // config
     await execCommand('git', ['fetch', `--all`], console.log);
-    await execCommand('git', ['branch', `-a`]);
-    const packageJSON = await execCommand('git', ['show', `origin/${defaultBranch}:${pathToPackage}`], JSON.parse);
+    await execCommand('git', ['branch', `-a`], console.log);
+    const packageJSON = await execCommand('git', ['show', `${defaultBranch}:${pathToPackage}`], JSON.parse);
     const previousVersion = previousVersionInput || packageJSON.version;
 
     const textArray = await getSource(source);
