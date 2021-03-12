@@ -106,9 +106,13 @@ const execCommand = async (command, args, callback) => {
   return callback(validateCommandResults({output, error}))
 }
 
-const getPackageJSONContent = async (pathToPackage) => {
-  const defaultBranch = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('default_branch') || 'remotes/origin/master';
-  const content = await execCommand('git', ['show', `${defaultBranch}:${pathToPackage}`], JSON.parse);
+const getPackageJSONMaster = async (pathToPackage) => {
+  const content = await execCommand('git', ['show', pathToPackage], JSON.parse);
+  return content;
+}
+
+const getPackageJSONLocal = async (pathToPackage) => {
+  const content = await execCommand('cat', [pathToPackage], JSON.parse);
   return content;
 }
 
@@ -151,6 +155,8 @@ async function run() {
 
     const pathToPackage = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('package_json_path') || path__WEBPACK_IMPORTED_MODULE_4___default().join(workspace, 'package.json')
 
+    const defaultBranch = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('default_branch') || 'remotes/origin/master';
+
     const source = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('source');
 
     const inputMappedToVersion = {
@@ -162,9 +168,12 @@ async function run() {
     // config
     await _actions_exec__WEBPACK_IMPORTED_MODULE_2__.exec('git', ['fetch', `--all`]);
 
-    const packageJSON = await getPackageJSONContent(pathToPackage);
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`package.json ${JSON.stringify(packageJSON)}`)
-    const previousVersion = previousVersionInput || packageJSON.version;
+    const packageJSONLocal = await getPackageJSONLocal(pathToPackage);
+    const packageJSONMaster = await getPackageJSONMaster(`${defaultBranch}:${pathToPackage}`);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`master package.json ${JSON.stringify(packageJSONMaster)}`)
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`local package.json ${JSON.stringify(packageJSONLocal)}`)
+    const previousVersionMaster = previousVersionInput || packageJSONMaster.version;
+    const previousVersionLocal = previousVersionInput || packageJSONLocal.version;
 
     const textArray = await getSource(source);
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`checking version against ${source}: ${JSON.stringify(textArray)}`)
@@ -185,19 +194,20 @@ async function run() {
 
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`Release type: ${releaseType}`)
 
-    const newVersion = semver__WEBPACK_IMPORTED_MODULE_3__.inc(previousVersion, releaseType)
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`Bumping ${previousVersion} to ${newVersion}`)
+    const newVersion = semver__WEBPACK_IMPORTED_MODULE_3__.inc(previousVersionMaster, releaseType)
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`Bumping ${previousVersionMaster} to ${newVersion}`)
 
 
     try {
-      packageJSON.version = newVersion
-      fs__WEBPACK_IMPORTED_MODULE_5___default().writeFileSync(pathToPackage, JSON.stringify(packageJSON, null, 2))
+      packageJSONMaster.version = newVersion
+      fs__WEBPACK_IMPORTED_MODULE_5___default().writeFileSync(pathToPackage, JSON.stringify(packageJSONMaster, null, 2))
     } catch (error) {
       _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(`Error writing package.json: ${error.message}`)
       return
     }
 
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('previous_version', previousVersion)
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('previous_version_master', previousVersionMaster)
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('previous_version', previousVersionLocal)
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('new_version', newVersion)
 
   } catch (error) {
