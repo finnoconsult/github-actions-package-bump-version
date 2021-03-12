@@ -7,6 +7,11 @@ require('./sourcemap-register.js');module.exports =
 
 "use strict";
 __nccwpck_require__.r(__webpack_exports__);
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   "parseRegex": () => /* binding */ parseRegex,
+/* harmony export */   "matchString": () => /* binding */ matchString,
+/* harmony export */   "getBumpTypes": () => /* binding */ getBumpTypes
+/* harmony export */ });
 /* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(2186);
 /* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__nccwpck_require__.n(_actions_core__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(5438);
@@ -29,84 +34,90 @@ const getPR = async () => {
   try {
     const token = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('github_token', {required: true})
     const octokit = new _actions_github__WEBPACK_IMPORTED_MODULE_1__.getOctokit(token)
-    console.log('token', token);
-    console.log('octokit', octokit);
     const context = _actions_github__WEBPACK_IMPORTED_MODULE_1__.context
-
-    console.log('get pr', {
-      owner: context.issue.owner,
-      repo: context.issue.repo,
-      pull_number: context.issue.number
-    });
 
     const { data: pr } = await octokit.pulls.get({
       owner: context.issue.owner,
       repo: context.issue.repo,
       pull_number: context.issue.number
     });
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`got pr data`);
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`pr title ${pr.title}`);
-    console.log('pr title', pr.title);
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`pr data ${JSON.stringify(pr)}`);
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`pr data ${JSON.stringify(pr)}`);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`pr meta: ${pr.number} ${pr.state}: ${pr.title}|${pr.body}`);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`pr labels: ${JSON.stringify(pr.labels)}`);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`pr data ${JSON.stringify(pr.requested_reviewers)}`);
 
-    console.log('returning pr data');
+    console.log('returning pr data', pr);
     return pr;
   } catch (error) {
-    console.error('Could not retrieve pr', error);
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(`Could not retrieve pr: ${error}`)
     return {}
   }
 }
 
-const getPRLabels = async () => {
-  try {
-    const pr = getPR();
-    console.log('getPRLabels', pr.labels);
+
+const getSource = async (source) => {
+  const pr = await getPR();
+  switch(source) {
+  case 'label':
     return pr.labels.map(label => label.name);
-  } catch (error) {
-    console.error('Could not retrieve labels', error);
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(`Could not retrieve labels: ${error}`)
-    return []
+  case 'title':
+  default:
+    return [pr.title];
   }
+}
+
+
+const parseRegex = (regexString) => {
+  const match = regexString.match(new RegExp('^/(.*?)/([gimy]*)$'));
+  if (match) return new RegExp(match[1], match[2]);
+  return new RegExp(regexString);
+}
+
+const matchString = (source, regexString) => {
+  const regex = parseRegex(regexString);
+  return source.match(regex);
+}
+
+
+const getBumpTypes = (sourceArray, bumpTypes) => {
+  _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`Valid bumps are: ${JSON.stringify(bumpTypes)}`)
+
+  return Object.entries(bumpTypes)
+    .filter(([, regex]) => sourceArray.find(source =>matchString(source,regex)))
+    .map(([type]) => type);
 }
 
 async function run() {
   try {
-
+    // input
     const previousVersion = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('previous_version')
-
-    const validMajorLabel = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('major_pattern')
-    const validMinorLabel = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('minor_pattern')
-    const validPatchLabel = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('patch_pattern')
 
     const pathToPackage = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('package_json_path') || path__WEBPACK_IMPORTED_MODULE_3___default().join(workspace, 'package.json')
 
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`Valid labels are: ${validMajorLabel}, ${validMinorLabel}, ${validPatchLabel}`)
+    const source = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('source');
 
     const inputMappedToVersion = {
-      [validMajorLabel]: 'major',
-      [validMinorLabel]: 'minor',
-      [validPatchLabel]: 'patch'
+      major: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('major_pattern'),
+      minor: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('minor_pattern'),
+      patch: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('patch_pattern'),
     }
 
-    const prLabels = await getPRLabels()
-    console.log(`prLabels: ${prLabels.join(',')}`)
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`prLabels: ${prLabels.join(',')}`)
-    const versionLabelsOnPR = Object.keys(inputMappedToVersion).filter(
-      validLabel => prLabels.includes(validLabel)
-    )
+    // config
+    const textArray = await getSource(source);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`checking version against ${source}: ${JSON.stringify(textArray)}`)
 
-    if (!versionLabelsOnPR.length) {
-      _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed('No valid version labels on PR')
+    const bumpTypes = getBumpTypes(textArray, inputMappedToVersion);
+
+    // action
+    if (!bumpTypes.length) {
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed('Nothing found triggering bump')
       return
     }
 
-    if (versionLabelsOnPR.length > 1) {
-      _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`More than one version label found on PR. Using ${versionLabelsOnPR[0]}`)
+    if (bumpTypes.length > 1) {
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`More than one version label found on PR. Using ${bumpTypes[0]}`)
     }
 
-    const releaseType = inputMappedToVersion[versionLabelsOnPR[0]]
+    const releaseType = bumpTypes[0];
 
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`Release type: ${releaseType}`)
 
@@ -1595,7 +1606,7 @@ exports.Octokit = Octokit;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 
-var isPlainObject = __nccwpck_require__(3287);
+var isPlainObject = __nccwpck_require__(558);
 var universalUserAgent = __nccwpck_require__(5030);
 
 function lowercaseKeys(object) {
@@ -1981,6 +1992,52 @@ const endpoint = withDefaults(null, DEFAULTS);
 
 exports.endpoint = endpoint;
 //# sourceMappingURL=index.js.map
+
+
+/***/ }),
+
+/***/ 558:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+/*!
+ * is-plain-object <https://github.com/jonschlinkert/is-plain-object>
+ *
+ * Copyright (c) 2014-2017, Jon Schlinkert.
+ * Released under the MIT License.
+ */
+
+function isObject(o) {
+  return Object.prototype.toString.call(o) === '[object Object]';
+}
+
+function isPlainObject(o) {
+  var ctor,prot;
+
+  if (isObject(o) === false) return false;
+
+  // If has modified constructor
+  ctor = o.constructor;
+  if (ctor === undefined) return true;
+
+  // If has modified prototype
+  prot = ctor.prototype;
+  if (isObject(prot) === false) return false;
+
+  // If constructor does not have an Object-specific method
+  if (prot.hasOwnProperty('isPrototypeOf') === false) {
+    return false;
+  }
+
+  // Most likely a plain Object
+  return true;
+}
+
+exports.isPlainObject = isPlainObject;
 
 
 /***/ }),
@@ -3514,7 +3571,7 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 
 var endpoint = __nccwpck_require__(9440);
 var universalUserAgent = __nccwpck_require__(5030);
-var isPlainObject = __nccwpck_require__(3287);
+var isPlainObject = __nccwpck_require__(9062);
 var nodeFetch = _interopDefault(__nccwpck_require__(467));
 var requestError = __nccwpck_require__(537);
 
@@ -3654,6 +3711,52 @@ const request = withDefaults(endpoint.endpoint, {
 
 exports.request = request;
 //# sourceMappingURL=index.js.map
+
+
+/***/ }),
+
+/***/ 9062:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+/*!
+ * is-plain-object <https://github.com/jonschlinkert/is-plain-object>
+ *
+ * Copyright (c) 2014-2017, Jon Schlinkert.
+ * Released under the MIT License.
+ */
+
+function isObject(o) {
+  return Object.prototype.toString.call(o) === '[object Object]';
+}
+
+function isPlainObject(o) {
+  var ctor,prot;
+
+  if (isObject(o) === false) return false;
+
+  // If has modified constructor
+  ctor = o.constructor;
+  if (ctor === undefined) return true;
+
+  // If has modified prototype
+  prot = ctor.prototype;
+  if (isObject(prot) === false) return false;
+
+  // If constructor does not have an Object-specific method
+  if (prot.hasOwnProperty('isPrototypeOf') === false) {
+    return false;
+  }
+
+  // Most likely a plain Object
+  return true;
+}
+
+exports.isPlainObject = isPlainObject;
 
 
 /***/ }),
@@ -3859,52 +3962,6 @@ class Deprecation extends Error {
 }
 
 exports.Deprecation = Deprecation;
-
-
-/***/ }),
-
-/***/ 3287:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-
-/*!
- * is-plain-object <https://github.com/jonschlinkert/is-plain-object>
- *
- * Copyright (c) 2014-2017, Jon Schlinkert.
- * Released under the MIT License.
- */
-
-function isObject(o) {
-  return Object.prototype.toString.call(o) === '[object Object]';
-}
-
-function isPlainObject(o) {
-  var ctor,prot;
-
-  if (isObject(o) === false) return false;
-
-  // If has modified constructor
-  ctor = o.constructor;
-  if (ctor === undefined) return true;
-
-  // If has modified prototype
-  prot = ctor.prototype;
-  if (isObject(prot) === false) return false;
-
-  // If constructor does not have an Object-specific method
-  if (prot.hasOwnProperty('isPrototypeOf') === false) {
-    return false;
-  }
-
-  // Most likely a plain Object
-  return true;
-}
-
-exports.isPlainObject = isPlainObject;
 
 
 /***/ }),
