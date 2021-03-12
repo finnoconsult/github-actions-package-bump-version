@@ -23,6 +23,7 @@ const getPRLabels = async () => {
       repo: context.issue.repo,
       pull_number: context.issue.number
     })
+    console.log('pr', pr);
 
     return pr.labels.map(label => label.name)
   } catch (error) {
@@ -36,9 +37,9 @@ async function run() {
 
     const previousVersion = core.getInput('previous_version')
 
-    const validMajorLabel = core.getInput('major_label')
-    const validMinorLabel = core.getInput('minor_label')
-    const validPatchLabel = core.getInput('patch_label')
+    const validMajorLabel = core.getInput('major_pattern')
+    const validMinorLabel = core.getInput('minor_pattern')
+    const validPatchLabel = core.getInput('patch_pattern')
 
     const pathToPackage = core.getInput('package_json_path') || path.join(workspace, 'package.json')
 
