@@ -33,28 +33,35 @@ __nccwpck_require__.r(__webpack_exports__);
 
 const workspace = process.env.GITHUB_WORKSPACE
 
+const token = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('github_token', {required: true});
+const octokit = new _actions_github__WEBPACK_IMPORTED_MODULE_1__.getOctokit(token);
+const context = _actions_github__WEBPACK_IMPORTED_MODULE_1__.context;
+const prInfo = {
+  owner: context.issue.owner,
+  repo: context.issue.repo,
+  pull_number: context.issue.number
+};
+
 const getPR = async () => {
   try {
-    const token = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('github_token', {required: true})
-    const octokit = new _actions_github__WEBPACK_IMPORTED_MODULE_1__.getOctokit(token)
-    const context = _actions_github__WEBPACK_IMPORTED_MODULE_1__.context
-
-    const { data: pr } = await octokit.pulls.get({
-      owner: context.issue.owner,
-      repo: context.issue.repo,
-      pull_number: context.issue.number
-    });
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`pr meta: ${pr.number} ${pr.state}: ${pr.title}|${pr.body}`);
+    const { data: pr } = await octokit.pulls.get(prInfo);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`pr meta: ${pr.number} ${pr.state}: ${pr.title}|${pr.body}`);
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`pr labels: ${JSON.stringify(pr.labels)}`);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`pr commits: ${JSON.stringify(pr.comments)}`);
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`pr requested_reviewers ${JSON.stringify(pr.requested_reviewers)}`);
 
-    // console.log('returning pr data', pr);
+    console.log('returning pr data', pr);
     return pr;
   } catch (error) {
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(`Could not retrieve pr: ${error}`)
     return {}
   }
 }
+
+// const getPRCommits = async() => {
+//   const commits = await octokit.pulls.listCommits(prInfo);
+//   return commits;
+// }
 
 const validateCommandResults = ({output, error}) => {
   if (error !== '') {
@@ -143,6 +150,8 @@ async function run() {
     }
 
     // config
+    await _actions_exec__WEBPACK_IMPORTED_MODULE_2__.exec('du', ['-sm', `*`]);
+    await _actions_exec__WEBPACK_IMPORTED_MODULE_2__.exec('find', ['.', '-d', `2`]);
     await _actions_exec__WEBPACK_IMPORTED_MODULE_2__.exec('git', ['fetch', `--all`]);
 
     const packageJSON = await getPackageJSONContent(pathToPackage);
