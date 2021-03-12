@@ -124,19 +124,24 @@ const getBumpTypes = (sourceArray, bumpTypes) => {
 async function run() {
   try {
     // input
-    const previousVersion = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('previous_version')
+    const defaultBranch = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('default_branch') || 'master';
+
+    const previousVersionInput = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('previous_version');
 
     const pathToPackage = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('package_json_path') || path__WEBPACK_IMPORTED_MODULE_4___default().join(workspace, 'package.json')
 
     const source = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('source');
 
     const inputMappedToVersion = {
-      major: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('major_pattern'),
-      minor: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('minor_pattern'),
-      patch: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('patch_pattern'),
+      major: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('major_pattern') || '^major',
+      minor: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('minor_pattern') || '^feat',
+      patch: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('patch_pattern') || '^fix',
     }
 
     // config
+    const packageJSON = await execCommand('git', ['show', `origin/${defaultBranch}:${pathToPackage}`], JSON.parse)
+    const previousVersion = previousVersionInput || packageJSON.version;
+
     const textArray = await getSource(source);
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`checking version against ${source}: ${JSON.stringify(textArray)}`)
 
@@ -161,8 +166,6 @@ async function run() {
 
 
     try {
-      const packageJSON = await execCommand('cat', [pathToPackage], JSON.parse);
-      console.log('packageJSON', packageJSON);
       packageJSON.version = newVersion
       fs__WEBPACK_IMPORTED_MODULE_5___default().writeFileSync(pathToPackage, JSON.stringify(packageJSON, null, 2))
     } catch (error) {
