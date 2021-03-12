@@ -98,19 +98,24 @@ export const getBumpTypes = (sourceArray, bumpTypes) => {
 async function run() {
   try {
     // input
-    const previousVersion = core.getInput('previous_version')
+    const defaultBranch = core.getInput('default_branch') || 'master';
+
+    const previousVersionInput = core.getInput('previous_version');
 
     const pathToPackage = core.getInput('package_json_path') || path.join(workspace, 'package.json')
 
     const source = core.getInput('source');
 
     const inputMappedToVersion = {
-      major: core.getInput('major_pattern'),
-      minor: core.getInput('minor_pattern'),
-      patch: core.getInput('patch_pattern'),
+      major: core.getInput('major_pattern') || '^major',
+      minor: core.getInput('minor_pattern') || '^feat',
+      patch: core.getInput('patch_pattern') || '^fix',
     }
 
     // config
+    const packageJSON = await execCommand('git', ['show', `origin/${defaultBranch}:${pathToPackage}`], JSON.parse)
+    const previousVersion = previousVersionInput || packageJSON.version;
+
     const textArray = await getSource(source);
     core.debug(`checking version against ${source}: ${JSON.stringify(textArray)}`)
 
@@ -135,8 +140,6 @@ async function run() {
 
 
     try {
-      const packageJSON = await execCommand('cat', [pathToPackage], JSON.parse);
-      console.log('packageJSON', packageJSON);
       packageJSON.version = newVersion
       fs.writeFileSync(pathToPackage, JSON.stringify(packageJSON, null, 2))
     } catch (error) {
