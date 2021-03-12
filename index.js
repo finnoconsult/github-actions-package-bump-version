@@ -63,6 +63,13 @@ const execCommand = async (command, args, callback) => {
   return callback(validateCommandResults({output, error}))
 }
 
+const getPackageJSONContent = async () => {
+  const defaultBranch = core.getInput('default_branch') || 'remotes/origin/master';
+  const pathToPackage = core.getInput('package_json_path') || path.join(workspace, 'package.json')
+  const content = await execCommand('git', ['show', `${defaultBranch}:${pathToPackage}`], JSON.parse);
+  return content;
+}
+
 const getSource = async (source) => {
   const pr = await getPR();
   switch(source) {
@@ -98,11 +105,7 @@ export const getBumpTypes = (sourceArray, bumpTypes) => {
 async function run() {
   try {
     // input
-    const defaultBranch = core.getInput('default_branch') || 'remotes/origin/master';
-
     const previousVersionInput = core.getInput('previous_version');
-
-    const pathToPackage = core.getInput('package_json_path') || path.join(workspace, 'package.json')
 
     const source = core.getInput('source');
 
@@ -113,9 +116,9 @@ async function run() {
     }
 
     // config
-    await execCommand('git', ['fetch', `--all`], console.log);
+    await exec.exec('git', ['fetch', `--all`]);
 
-    const packageJSON = await execCommand('git', ['show', `${defaultBranch}:${pathToPackage}`], JSON.parse);
+    const packageJSON = await getPackageJSONContent();
     core.debug(`package.json ${JSON.stringify(packageJSON)}`)
     const previousVersion = previousVersionInput || packageJSON.version;
 
