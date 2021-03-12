@@ -113,7 +113,9 @@ async function run() {
     }
 
     // config
-    const packageJSON = await execCommand('git', ['show', `origin/${defaultBranch}:${pathToPackage}`], JSON.parse)
+    await execCommand('git', ['fetch', `--all`], console.log);
+    await execCommand('git', ['branch', `-a`]);
+    const packageJSON = await execCommand('git', ['show', `origin/${defaultBranch}:${pathToPackage}`], JSON.parse);
     const previousVersion = previousVersionInput || packageJSON.version;
 
     const textArray = await getSource(source);
