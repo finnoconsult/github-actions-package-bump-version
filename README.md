@@ -4,7 +4,7 @@
 
 ---
 
-TODO: comment about forked from https://github.com/copapow/version-bump-package
+Forked from https://github.com/copapow/version-bump-package
 
 ## Usage :computer:
 
@@ -16,68 +16,22 @@ TODO: comment about forked from https://github.com/copapow/version-bump-package
 - uses: finnoconsult/github-actions-package-bump-version@v1
     id: bump
     with:
-        major_label: version-major # optional - default = major
-        minor_label: version-minor # optional - default = minor
-        patch_label: version-patch # optional - default = patch
-        default_branch: main       # optional = default = master
+        major_pattern: '^major/' # optional - default = ^major
+        minor_pattern: '^feat/' # optional - default = ^feat
+        patch_pattern: '^fix/' # optional - default = ^fix
+        source: title       # optional - default = title
+        default_branch: remotes/origin/master       # optional - default = remotes/origin/master
+        package_json_path: package.json       # optional - default = package.json
+        previous_version:        # optional - default =
         github_token: ${{ secrets.GITHUB_TOKEN }} # required
 - run: |
     echo "Previous version: ${{ steps.bump.outputs.previous_version }}"
     echo "New Version: ${{ steps.bump.outputs.new_version }}"
 ```
 
-## Inputs :inbox_tray:
-
-
-|Key|Required|Description|Default|
-|:-:|:-:|-|:-:|
-|`major_label`  | No  | Custom label to trigger major version bump      | major |
-|`minor_label`  | No  | Custom label to trigger minor version bump      | minor |
-|`patch_label`  | No  | Custom label to trigger patch version bump      | patch |
-|`default_branch`  | No  | Default branch of your project  | master |
-|`github_token` | Yes | Github token - can be `${{secrets.GITHUB_TOKEN}}` |
-
-## Outputs :outbox_tray:
-
-|Key|Description|
-|:-:|-|
-|`previous_version`  | `version` in package.json _before_ bump  |
-|`new_version`  | `version` in package.json _after_ bump  |
-
 ## But Why?
 
-There are many actions like this one, but this one is mine. Similar actions utilize specific terms in commit messages and while that may work for some, I prefer to use labels.
+With input param 'source' it can operate with PR labels, and also PR.
 
-TODO
-Here's how I use this action in conjunction with `EndBug/add-and-commit@v7` to auto commit the new version to package.json. A caveat with using `EndBug/add-and-commit` is it can't be used if you use [GitHub's protected branch features](https://docs.github.com/en/github/administering-a-repository/about-protected-branches).
-
-```yaml
-name: Bump Package Version On Merge
-
-on:
-  pull_request_review:
-    branches:
-      - master
-
-jobs:
-  bump-package-version:
-    # Only run if the PR review is approved
-    if: github.event.review.state == 'approved'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          ref: 'refs/heads/master'
-      - uses: nyaa8/package-version@v1
-        with:
-          path: 'finnoconsult.at/package.json'
-      - uses: actions/checkout@v2
-      - uses: finnoconsult/github-actions-package-bump-version@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          previous_version: ${{env.PACKAGE_VERSION}}
-      - uses: EndBug/add-and-commit@v7
-        with:
-          branch: main
-          message: 'Bump package version'
-```
+The action doesn't do any commit by itself, it also requires a subsequent commit action, not to loose the updated package.json
+See .github/workdlows/approve-pr.yml in this repo, to see how I use this action with commit to auto commit the new version to package.json. That bypasses the caveat with [GitHub's protected branch features](https://docs.github.com/en/github/administering-a-repository/about-protected-branches), and uses auto-merge after approvals.
