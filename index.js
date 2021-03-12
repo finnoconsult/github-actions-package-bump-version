@@ -10,84 +10,90 @@ const getPR = async () => {
   try {
     const token = core.getInput('github_token', {required: true})
     const octokit = new github.getOctokit(token)
-    console.log('token', token);
-    console.log('octokit', octokit);
     const context = github.context
-
-    console.log('get pr', {
-      owner: context.issue.owner,
-      repo: context.issue.repo,
-      pull_number: context.issue.number
-    });
 
     const { data: pr } = await octokit.pulls.get({
       owner: context.issue.owner,
       repo: context.issue.repo,
       pull_number: context.issue.number
     });
-    core.debug(`got pr data`);
-    core.debug(`pr title ${pr.title}`);
-    console.log('pr title', pr.title);
-    core.debug(`pr data ${JSON.stringify(pr)}`);
-    core.debug(`pr data ${JSON.stringify(pr)}`);
+    core.debug(`pr meta: ${pr.number} ${pr.state}: ${pr.title}|${pr.body}`);
+    core.debug(`pr labels: ${JSON.stringify(pr.labels)}`);
+    core.debug(`pr data ${JSON.stringify(pr.requested_reviewers)}`);
 
-    console.log('returning pr data');
+    console.log('returning pr data', pr);
     return pr;
   } catch (error) {
-    console.error('Could not retrieve pr', error);
     core.setFailed(`Could not retrieve pr: ${error}`)
     return {}
   }
 }
 
-const getPRLabels = async () => {
-  try {
-    const pr = getPR();
-    console.log('getPRLabels', pr.labels);
+
+const getSource = async (source) => {
+  const pr = await getPR();
+  switch(source) {
+  case 'label':
     return pr.labels.map(label => label.name);
-  } catch (error) {
-    console.error('Could not retrieve labels', error);
-    core.setFailed(`Could not retrieve labels: ${error}`)
-    return []
+  case 'title':
+  default:
+    return [pr.title];
   }
+}
+
+
+export const parseRegex = (regexString) => {
+  const match = regexString.match(new RegExp('^/(.*?)/([gimy]*)$'));
+  if (match) return new RegExp(match[1], match[2]);
+  return new RegExp(regexString);
+}
+
+export const matchString = (source, regexString) => {
+  const regex = parseRegex(regexString);
+  return source.match(regex);
+}
+
+
+export const getBumpTypes = (sourceArray, bumpTypes) => {
+  core.debug(`Valid bumps are: ${JSON.stringify(bumpTypes)}`)
+
+  return Object.entries(bumpTypes)
+    .filter(([, regex]) => sourceArray.find(source =>matchString(source,regex)))
+    .map(([type]) => type);
 }
 
 async function run() {
   try {
-
+    // input
     const previousVersion = core.getInput('previous_version')
-
-    const validMajorLabel = core.getInput('major_pattern')
-    const validMinorLabel = core.getInput('minor_pattern')
-    const validPatchLabel = core.getInput('patch_pattern')
 
     const pathToPackage = core.getInput('package_json_path') || path.join(workspace, 'package.json')
 
-    core.debug(`Valid labels are: ${validMajorLabel}, ${validMinorLabel}, ${validPatchLabel}`)
+    const source = core.getInput('source');
 
     const inputMappedToVersion = {
-      [validMajorLabel]: 'major',
-      [validMinorLabel]: 'minor',
-      [validPatchLabel]: 'patch'
+      major: core.getInput('major_pattern'),
+      minor: core.getInput('minor_pattern'),
+      patch: core.getInput('patch_pattern'),
     }
 
-    const prLabels = await getPRLabels()
-    console.log(`prLabels: ${prLabels.join(',')}`)
-    core.debug(`prLabels: ${prLabels.join(',')}`)
-    const versionLabelsOnPR = Object.keys(inputMappedToVersion).filter(
-      validLabel => prLabels.includes(validLabel)
-    )
+    // config
+    const textArray = await getSource(source);
+    core.debug(`checking version against ${source}: ${JSON.stringify(textArray)}`)
 
-    if (!versionLabelsOnPR.length) {
-      core.setFailed('No valid version labels on PR')
+    const bumpTypes = getBumpTypes(textArray, inputMappedToVersion);
+
+    // action
+    if (!bumpTypes.length) {
+      core.setFailed('Nothing found triggering bump')
       return
     }
 
-    if (versionLabelsOnPR.length > 1) {
-      core.warning(`More than one version label found on PR. Using ${versionLabelsOnPR[0]}`)
+    if (bumpTypes.length > 1) {
+      core.warning(`More than one version label found on PR. Using ${bumpTypes[0]}`)
     }
 
-    const releaseType = inputMappedToVersion[versionLabelsOnPR[0]]
+    const releaseType = bumpTypes[0];
 
     core.debug(`Release type: ${releaseType}`)
 
