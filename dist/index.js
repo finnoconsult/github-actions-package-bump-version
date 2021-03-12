@@ -58,8 +58,11 @@ const getPR = async () => {
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`pr requested_reviewers ${JSON.stringify(pr.requested_reviewers)}`);
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`pr assignees ${JSON.stringify(pr.assignees)}`);
 
-    const commits = getPRCommits(prInfo);
+    const commits = await getPRCommits(prInfo);
     console.log('commits', commits);
+
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('first_commit_sha', commits && commits[0].sha);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('pr', pr);
 
     return pr;
   } catch (error) {
