@@ -89,9 +89,8 @@ const execCommand = async (command, args, callback) => {
   return callback(validateCommandResults({output, error}))
 }
 
-const getPackageJSONContent = async () => {
+const getPackageJSONContent = async (pathToPackage) => {
   const defaultBranch = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('default_branch') || 'remotes/origin/master';
-  const pathToPackage = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('package_json_path') || path__WEBPACK_IMPORTED_MODULE_4___default().join(workspace, 'package.json')
   const content = await execCommand('git', ['show', `${defaultBranch}:${pathToPackage}`], JSON.parse);
   return content;
 }
@@ -133,6 +132,8 @@ async function run() {
     // input
     const previousVersionInput = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('previous_version');
 
+    const pathToPackage = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('package_json_path') || path__WEBPACK_IMPORTED_MODULE_4___default().join(workspace, 'package.json')
+
     const source = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('source');
 
     const inputMappedToVersion = {
@@ -144,7 +145,7 @@ async function run() {
     // config
     await _actions_exec__WEBPACK_IMPORTED_MODULE_2__.exec('git', ['fetch', `--all`]);
 
-    const packageJSON = await getPackageJSONContent();
+    const packageJSON = await getPackageJSONContent(pathToPackage);
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`package.json ${JSON.stringify(packageJSON)}`)
     const previousVersion = previousVersionInput || packageJSON.version;
 
