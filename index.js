@@ -1,5 +1,6 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
+import * as exec from '@actions/exec'
 import * as semver from 'semver'
 import path from 'path'
 import fs from 'fs'
