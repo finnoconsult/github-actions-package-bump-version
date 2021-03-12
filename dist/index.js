@@ -29,6 +29,8 @@ const getPR = async () => {
   try {
     const token = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('github_token', {required: true})
     const octokit = new _actions_github__WEBPACK_IMPORTED_MODULE_1__.getOctokit(token)
+    console.log('token', token);
+    console.log('octokit', octokit);
     const context = _actions_github__WEBPACK_IMPORTED_MODULE_1__.context
 
     console.log('get pr', {
@@ -51,8 +53,8 @@ const getPR = async () => {
     console.log('returning pr data');
     return pr;
   } catch (error) {
-    console.log('error', error);
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(`Could not retrieve labels: ${error}`)
+    console.error('Could not retrieve pr', error);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(`Could not retrieve pr: ${error}`)
     return {}
   }
 }
@@ -63,7 +65,7 @@ const getPRLabels = async () => {
     console.log('getPRLabels', pr.labels);
     return pr.labels.map(label => label.name);
   } catch (error) {
-    console.log()
+    console.error('Could not retrieve labels', error);
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(`Could not retrieve labels: ${error}`)
     return []
   }
