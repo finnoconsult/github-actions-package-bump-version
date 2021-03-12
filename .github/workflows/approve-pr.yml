@@ -17,10 +17,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - run: |
-        npm install
-
-    - uses: finnoconsult/github-actions-package-bump-version@feature/initial
+    - uses: finnoconsult/github-actions-package-bump-version@master
       id: bumpVersion
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -36,16 +33,3 @@ jobs:
       with:
         message: 'CI: bump package version, affer stale approvals by ${{github.event.review.user.login}} [skip ci]'
         add: '*'
-
-    # - uses: hmarr/auto-approve-action@v2.0.0
-    #   if: steps.bumpVersion.outputs.previous_version != steps.bumpVersion.outputs.new_version
-    #   with:
-    #     github-token: "${{ secrets.GITHUB_TOKEN }}"
-
-    - uses: reitermarkus/automerge@v1
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        merge-method: rebase
-        do-not-merge-labels: never-merge
-        pull-request: ${{ github.event.inputs.pull-request }}
-        dry-run: true
