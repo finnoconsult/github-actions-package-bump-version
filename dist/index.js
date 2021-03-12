@@ -89,6 +89,13 @@ const execCommand = async (command, args, callback) => {
   return callback(validateCommandResults({output, error}))
 }
 
+const getPackageJSONContent = async () => {
+  const defaultBranch = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('default_branch') || 'remotes/origin/master';
+  const pathToPackage = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('package_json_path') || path__WEBPACK_IMPORTED_MODULE_4___default().join(workspace, 'package.json')
+  const content = await execCommand('git', ['show', `${defaultBranch}:${pathToPackage}`], JSON.parse);
+  return content;
+}
+
 const getSource = async (source) => {
   const pr = await getPR();
   switch(source) {
@@ -124,11 +131,7 @@ const getBumpTypes = (sourceArray, bumpTypes) => {
 async function run() {
   try {
     // input
-    const defaultBranch = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('default_branch') || 'remotes/origin/master';
-
     const previousVersionInput = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('previous_version');
-
-    const pathToPackage = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('package_json_path') || path__WEBPACK_IMPORTED_MODULE_4___default().join(workspace, 'package.json')
 
     const source = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('source');
 
@@ -139,9 +142,9 @@ async function run() {
     }
 
     // config
-    await execCommand('git', ['fetch', `--all`], console.log);
+    await _actions_exec__WEBPACK_IMPORTED_MODULE_2__.exec('git', ['fetch', `--all`]);
 
-    const packageJSON = await execCommand('git', ['show', `${defaultBranch}:${pathToPackage}`], JSON.parse);
+    const packageJSON = await getPackageJSONContent();
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`package.json ${JSON.stringify(packageJSON)}`)
     const previousVersion = previousVersionInput || packageJSON.version;
 
