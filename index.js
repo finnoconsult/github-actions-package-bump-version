@@ -23,7 +23,7 @@ const getPRLabels = async () => {
       repo: context.issue.repo,
       pull_number: context.issue.number
     })
-    console.log('pr', pr);
+    core.debug(`pr data ${JSON.stringify(pr)}`);
 
     return pr.labels.map(label => label.name)
   } catch (error) {
@@ -52,6 +52,7 @@ async function run() {
     }
 
     const prLabels = await getPRLabels()
+    console.log(`prLabels: ${prLabels.join(',')}`)
     core.debug(`prLabels: ${prLabels.join(',')}`)
     const versionLabelsOnPR = Object.keys(inputMappedToVersion).filter(
       validLabel => prLabels.includes(validLabel)
