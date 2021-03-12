@@ -16,9 +16,9 @@ Forked from https://github.com/copapow/version-bump-package
 - uses: finnoconsult/github-actions-package-bump-version@v1
     id: bump
     with:
-        major_pattern: '^major/' # optional - default = ^major
-        minor_pattern: '^feat/' # optional - default = ^feat
-        patch_pattern: '^fix/' # optional - default = ^fix
+        major_pattern: '/^major/i' # optional - default = /^major/i
+        minor_pattern: '/^feat/i' # optional - default = /^feat/i
+        patch_pattern: '/^fix/i' # optional - default = /^fix/i
         source: title       # optional - default = title
         default_branch: remotes/origin/master       # optional - default = remotes/origin/master
         package_json_path: package.json       # optional - default = package.json

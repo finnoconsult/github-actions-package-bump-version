@@ -18,15 +18,15 @@ inputs:
   major_pattern:
     description: 'regexp pattern used to trigger major bump against input source'
     required: false
-    default: '^major'
+    default: /^major/i
   minor_pattern:
     description: 'regexp pattern used to trigger minor bump against input source'
     required: false
-    default: '^feat'
+    default: /^feat/i
   patch_pattern:
     description: 'regexp pattern used to trigger patch bump against input source'
     required: false
-    default: '^fix'
+    default: /^fix/i
   package_json_path:
     description: 'package.json location from where we determine current version, package.json in repo root by default'
     required: false

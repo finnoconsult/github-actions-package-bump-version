@@ -7,22 +7,30 @@ import fs from 'fs'
 
 const workspace = process.env.GITHUB_WORKSPACE
 
-const token = core.getInput('github_token', {required: true});
-const octokit = new github.getOctokit(token);
-const context = github.context;
-const prInfo = {
-  owner: context.issue.owner,
-  repo: context.issue.repo,
-  pull_number: context.issue.number
-};
-
 
 export const getPRCommits = async() => {
+  // TODO: DRY!
+  const token = core.getInput('github_token', {required: true});
+  const octokit = new github.getOctokit(token);
+  const context = github.context;
+  const prInfo = {
+    owner: context.issue.owner,
+    repo: context.issue.repo,
+    pull_number: context.issue.number
+  };
   const { data: commits } = await octokit.pulls.listCommits(prInfo);
   return commits;
 }
 
 const getPR = async () => {
+  const token = core.getInput('github_token', {required: true});
+  const octokit = new github.getOctokit(token);
+  const context = github.context;
+  const prInfo = {
+    owner: context.issue.owner,
+    repo: context.issue.repo,
+    pull_number: context.issue.number
+  };
   try {
     const { data: pr } = await octokit.pulls.get(prInfo);
     core.info(`pr meta: ${pr.number} ${pr.state}: ${pr.title}|${pr.body}`);
@@ -116,10 +124,14 @@ export const matchString = (source, regexString) => {
 
 export const getBumpTypes = (sourceArray, bumpTypes) => {
   core.debug(`Valid bumps are: ${JSON.stringify(bumpTypes)}`)
+  core.debug(`sourceArray: ${JSON.stringify(sourceArray)}`)
 
-  return Object.entries(bumpTypes)
+  const found = Object.entries(bumpTypes)
     .filter(([, regex]) => sourceArray.find(source =>matchString(source,regex)))
     .map(([type]) => type);
+
+  core.info(`bumpTypes identified: ${JSON.stringify(found)}`);
+  return found;
 }
 
 async function run() {
@@ -134,9 +146,9 @@ async function run() {
     const source = core.getInput('source');
 
     const inputMappedToVersion = {
-      major: core.getInput('major_pattern') || '^major',
-      minor: core.getInput('minor_pattern') || '^feat',
-      patch: core.getInput('patch_pattern') || '^fix',
+      major: core.getInput('major_pattern') || '/^major/i',
+      minor: core.getInput('minor_pattern') || '/^major/i',
+      patch: core.getInput('patch_pattern') || '/^major/i',
     }
 
     // config
