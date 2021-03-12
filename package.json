@@ -9,7 +9,7 @@
     "test": "jest",
     "start": "node dist/",
     "build": "ncc build index.js -o dist --source-map --license licenses.txt",
-    "push": "git pull -f && git push"
+    "push": "git fetch && git merge -m \"mergeing with remote branch\" && && git push"
   },
   "repository": {
     "type": "git",
