@@ -51,7 +51,7 @@ const getPR = async () => {
     console.log('returning pr data');
     return pr;
   } catch (error) {
-    console.log()
+    console.log('error', error);
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(`Could not retrieve labels: ${error}`)
     return {}
   }
