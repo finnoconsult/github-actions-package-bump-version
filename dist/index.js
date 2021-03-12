@@ -8,6 +8,7 @@ require('./sourcemap-register.js');module.exports =
 "use strict";
 __nccwpck_require__.r(__webpack_exports__);
 /* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   "getPRCommits": () => /* binding */ getPRCommits,
 /* harmony export */   "parseRegex": () => /* binding */ parseRegex,
 /* harmony export */   "matchString": () => /* binding */ matchString,
 /* harmony export */   "getBumpTypes": () => /* binding */ getBumpTypes
@@ -58,11 +59,11 @@ const getPR = async () => {
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`pr requested_reviewers ${JSON.stringify(pr.requested_reviewers)}`);
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`pr assignees ${JSON.stringify(pr.assignees)}`);
 
-    const commits = await getPRCommits(prInfo);
-    console.log('commits', commits);
-
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('first_commit_sha', commits && commits[0].sha);
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('pr', pr);
+
+    // const commits = await getPRCommits(prInfo);
+    // core.setOutput('first_commit_sha', commits && commits[0].sha);
+    // core.setOutput('commits', commits);
 
     return pr;
   } catch (error) {
