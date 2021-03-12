@@ -34,22 +34,30 @@ __nccwpck_require__.r(__webpack_exports__);
 
 const workspace = process.env.GITHUB_WORKSPACE
 
-const token = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('github_token', {required: true});
-const octokit = new _actions_github__WEBPACK_IMPORTED_MODULE_1__.getOctokit(token);
-const context = _actions_github__WEBPACK_IMPORTED_MODULE_1__.context;
-const prInfo = {
-  owner: context.issue.owner,
-  repo: context.issue.repo,
-  pull_number: context.issue.number
-};
-
 
 const getPRCommits = async() => {
+  // TODO: DRY!
+  const token = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('github_token', {required: true});
+  const octokit = new _actions_github__WEBPACK_IMPORTED_MODULE_1__.getOctokit(token);
+  const context = _actions_github__WEBPACK_IMPORTED_MODULE_1__.context;
+  const prInfo = {
+    owner: context.issue.owner,
+    repo: context.issue.repo,
+    pull_number: context.issue.number
+  };
   const { data: commits } = await octokit.pulls.listCommits(prInfo);
   return commits;
 }
 
 const getPR = async () => {
+  const token = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('github_token', {required: true});
+  const octokit = new _actions_github__WEBPACK_IMPORTED_MODULE_1__.getOctokit(token);
+  const context = _actions_github__WEBPACK_IMPORTED_MODULE_1__.context;
+  const prInfo = {
+    owner: context.issue.owner,
+    repo: context.issue.repo,
+    pull_number: context.issue.number
+  };
   try {
     const { data: pr } = await octokit.pulls.get(prInfo);
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`pr meta: ${pr.number} ${pr.state}: ${pr.title}|${pr.body}`);
@@ -143,10 +151,14 @@ const matchString = (source, regexString) => {
 
 const getBumpTypes = (sourceArray, bumpTypes) => {
   _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`Valid bumps are: ${JSON.stringify(bumpTypes)}`)
+  _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`sourceArray: ${JSON.stringify(sourceArray)}`)
 
-  return Object.entries(bumpTypes)
+  const found = Object.entries(bumpTypes)
     .filter(([, regex]) => sourceArray.find(source =>matchString(source,regex)))
     .map(([type]) => type);
+
+  _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`bumpTypes identified: ${JSON.stringify(found)}`);
+  return found;
 }
 
 async function run() {
@@ -161,9 +173,9 @@ async function run() {
     const source = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('source');
 
     const inputMappedToVersion = {
-      major: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('major_pattern') || '^major',
-      minor: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('minor_pattern') || '^feat',
-      patch: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('patch_pattern') || '^fix',
+      major: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('major_pattern') || '/^major/i',
+      minor: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('minor_pattern') || '/^major/i',
+      patch: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('patch_pattern') || '/^major/i',
     }
 
     // config
