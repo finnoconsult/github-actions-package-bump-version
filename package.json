@@ -1,0 +1,34 @@
+{
+  "name": "github-actions-package-bump-version",
+  "version": "0.9.0",
+  "description": "JavaScript Action Template",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint .",
+    "build": "ncc build index.js -o dist --source-map --license licenses.txt"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/finnoconsult/github-actions-package-bump-version.git"
+  },
+  "keywords": [
+    "GitHub",
+    "Actions",
+    "JavaScript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/finnoconsult/github-actions-package-bump-version/issues"
+  },
+  "homepage": "https://github.com/finnoconsult/github-actions-package-bump-version#readme",
+  "dependencies": {
+    "@actions/core": "^1.2.5",
+    "@actions/github": "^4.0.0",
+    "semver": "^7.3.4"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.27.0",
+    "eslint": "^7.4.0"
+  }
+}
