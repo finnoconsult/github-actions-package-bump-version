@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "lint": "eslint .",
+    "prebuild": "yarn",
     "build": "ncc build index.js -o dist --source-map --license licenses.txt"
   },
   "repository": {
