@@ -17,7 +17,7 @@ const prInfo = {
 };
 
 
-const getPRCommits = async() => {
+export const getPRCommits = async() => {
   const { data: commits } = await octokit.pulls.listCommits(prInfo);
   return commits;
 }
@@ -32,11 +32,11 @@ const getPR = async () => {
     core.debug(`pr requested_reviewers ${JSON.stringify(pr.requested_reviewers)}`);
     core.debug(`pr assignees ${JSON.stringify(pr.assignees)}`);
 
-    const commits = await getPRCommits(prInfo);
-    console.log('commits', commits);
-
-    core.setOutput('first_commit_sha', commits && commits[0].sha);
     core.setOutput('pr', pr);
+
+    // const commits = await getPRCommits(prInfo);
+    // core.setOutput('first_commit_sha', commits && commits[0].sha);
+    // core.setOutput('commits', commits);
 
     return pr;
   } catch (error) {
