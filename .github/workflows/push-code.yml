@@ -3,7 +3,7 @@ name: build dist content on every push
 on:
   push:
     # branches:
-    #   - 'maser' # WHEN CODE GETS MERGED INTO master branch (ALSO DIRECT PUSHES)
+    #   - 'master' # WHEN CODE GETS MERGED INTO master branch (ALSO DIRECT PUSHES)
 
 jobs:
   deploy:

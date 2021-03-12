@@ -80,9 +80,13 @@ const execCommand = async (command, args, callback) => {
   return callback(validateCommandResults({output, error}))
 }
 
-const getPackageJSONContent = async (pathToPackage) => {
-  const defaultBranch = core.getInput('default_branch') || 'remotes/origin/master';
-  const content = await execCommand('git', ['show', `${defaultBranch}:${pathToPackage}`], JSON.parse);
+const getPackageJSONMaster = async (pathToPackage) => {
+  const content = await execCommand('git', ['show', pathToPackage], JSON.parse);
+  return content;
+}
+
+const getPackageJSONLocal = async (pathToPackage) => {
+  const content = await execCommand('cat', [pathToPackage], JSON.parse);
   return content;
 }
 
@@ -125,6 +129,8 @@ async function run() {
 
     const pathToPackage = core.getInput('package_json_path') || path.join(workspace, 'package.json')
 
+    const defaultBranch = core.getInput('default_branch') || 'remotes/origin/master';
+
     const source = core.getInput('source');
 
     const inputMappedToVersion = {
@@ -136,9 +142,12 @@ async function run() {
     // config
     await exec.exec('git', ['fetch', `--all`]);
 
-    const packageJSON = await getPackageJSONContent(pathToPackage);
-    core.debug(`package.json ${JSON.stringify(packageJSON)}`)
-    const previousVersion = previousVersionInput || packageJSON.version;
+    const packageJSONLocal = await getPackageJSONLocal(pathToPackage);
+    const packageJSONMaster = await getPackageJSONMaster(`${defaultBranch}:${pathToPackage}`);
+    core.debug(`master package.json ${JSON.stringify(packageJSONMaster)}`)
+    core.debug(`local package.json ${JSON.stringify(packageJSONLocal)}`)
+    const previousVersionMaster = previousVersionInput || packageJSONMaster.version;
+    const previousVersionLocal = previousVersionInput || packageJSONLocal.version;
 
     const textArray = await getSource(source);
     core.debug(`checking version against ${source}: ${JSON.stringify(textArray)}`)
@@ -159,19 +168,20 @@ async function run() {
 
     core.debug(`Release type: ${releaseType}`)
 
-    const newVersion = semver.inc(previousVersion, releaseType)
-    core.debug(`Bumping ${previousVersion} to ${newVersion}`)
+    const newVersion = semver.inc(previousVersionMaster, releaseType)
+    core.debug(`Bumping ${previousVersionMaster} to ${newVersion}`)
 
 
     try {
-      packageJSON.version = newVersion
-      fs.writeFileSync(pathToPackage, JSON.stringify(packageJSON, null, 2))
+      packageJSONMaster.version = newVersion
+      fs.writeFileSync(pathToPackage, JSON.stringify(packageJSONMaster, null, 2))
     } catch (error) {
       core.setFailed(`Error writing package.json: ${error.message}`)
       return
     }
 
-    core.setOutput('previous_version', previousVersion)
+    core.setOutput('previous_version_master', previousVersionMaster)
+    core.setOutput('previous_version', previousVersionLocal)
     core.setOutput('new_version', newVersion)
 
   } catch (error) {
