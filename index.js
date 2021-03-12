@@ -7,28 +7,35 @@ import fs from 'fs'
 
 const workspace = process.env.GITHUB_WORKSPACE
 
+const token = core.getInput('github_token', {required: true});
+const octokit = new github.getOctokit(token);
+const context = github.context;
+const prInfo = {
+  owner: context.issue.owner,
+  repo: context.issue.repo,
+  pull_number: context.issue.number
+};
+
 const getPR = async () => {
   try {
-    const token = core.getInput('github_token', {required: true})
-    const octokit = new github.getOctokit(token)
-    const context = github.context
-
-    const { data: pr } = await octokit.pulls.get({
-      owner: context.issue.owner,
-      repo: context.issue.repo,
-      pull_number: context.issue.number
-    });
-    core.debug(`pr meta: ${pr.number} ${pr.state}: ${pr.title}|${pr.body}`);
+    const { data: pr } = await octokit.pulls.get(prInfo);
+    core.info(`pr meta: ${pr.number} ${pr.state}: ${pr.title}|${pr.body}`);
     core.debug(`pr labels: ${JSON.stringify(pr.labels)}`);
+    core.debug(`pr commits: ${JSON.stringify(pr.comments)}`);
     core.debug(`pr requested_reviewers ${JSON.stringify(pr.requested_reviewers)}`);
 
-    // console.log('returning pr data', pr);
+    console.log('returning pr data', pr);
     return pr;
   } catch (error) {
     core.setFailed(`Could not retrieve pr: ${error}`)
     return {}
   }
 }
+
+// const getPRCommits = async() => {
+//   const commits = await octokit.pulls.listCommits(prInfo);
+//   return commits;
+// }
 
 const validateCommandResults = ({output, error}) => {
   if (error !== '') {
@@ -117,6 +124,8 @@ async function run() {
     }
 
     // config
+    await exec.exec('du', ['-sm', `*`]);
+    await exec.exec('find', ['.', '-d', `2`]);
     await exec.exec('git', ['fetch', `--all`]);
 
     const packageJSON = await getPackageJSONContent(pathToPackage);
