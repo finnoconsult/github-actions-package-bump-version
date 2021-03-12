@@ -21,7 +21,7 @@ jobs:
       id: bumpVersion
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        package_json_path: 'finnoconsult.at/package.json'
+        package_json_path: 'package.json'
         source: title
     - run: |
         echo "PR ${{github.event.pull_request.number}}, ${{github.event_name}}: ${{github.event.review.state}} on ${{github.ref}} (${{github.sha}})"
