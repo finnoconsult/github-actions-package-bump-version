@@ -124,8 +124,6 @@ async function run() {
     }
 
     // config
-    await exec.exec('du', ['-sm', `*`]);
-    await exec.exec('find', ['.', '-d', `2`]);
     await exec.exec('git', ['fetch', `--all`]);
 
     const packageJSON = await getPackageJSONContent(pathToPackage);
