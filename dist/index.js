@@ -48,9 +48,10 @@ const getPR = async () => {
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`pr meta: ${pr.number} ${pr.state}: ${pr.title}|${pr.body}`);
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`pr labels: ${JSON.stringify(pr.labels)}`);
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`pr commits: ${JSON.stringify(pr.comments)}`);
+    // NOTE: these seems to be empty every time
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`pr requested_reviewers ${JSON.stringify(pr.requested_reviewers)}`);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`pr assignees ${JSON.stringify(pr.assignees)}`);
 
-    console.log('returning pr data', pr);
     return pr;
   } catch (error) {
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(`Could not retrieve pr: ${error}`)
