@@ -150,8 +150,6 @@ async function run() {
     }
 
     // config
-    await _actions_exec__WEBPACK_IMPORTED_MODULE_2__.exec('du', ['-sm', `*`]);
-    await _actions_exec__WEBPACK_IMPORTED_MODULE_2__.exec('find', ['.', '-d', `2`]);
     await _actions_exec__WEBPACK_IMPORTED_MODULE_2__.exec('git', ['fetch', `--all`]);
 
     const packageJSON = await getPackageJSONContent(pathToPackage);
