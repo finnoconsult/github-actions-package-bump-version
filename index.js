@@ -32,7 +32,7 @@ const getPR = async () => {
     console.log('returning pr data');
     return pr;
   } catch (error) {
-    console.log()
+    console.log('error', error);
     core.setFailed(`Could not retrieve labels: ${error}`)
     return {}
   }
