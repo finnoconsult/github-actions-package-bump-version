@@ -1,0 +1,32 @@
+name: build dist content on every push
+
+on:
+  push:
+    # branches:
+    #   - 'master' # WHEN CODE GETS MERGED INTO master branch (ALSO DIRECT PUSHES)
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - run: |
+        npm install
+        npm run build
+        git status
+
+    - name: Commit changelog file
+      uses: swinton/commit@v2.x
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        files: |
+          yarn.lock
+          dist/index.js
+          dist/index.js.map
+          dist/sourcemap-register.js
+          dist/package.json
+        commit-message: 'CI: build and add files to dist/ [skip ci]'
+        ref: ${{github.ref}}

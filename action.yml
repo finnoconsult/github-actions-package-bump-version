@@ -7,27 +7,38 @@ inputs:
   default_branch:
     description: 'default branch of the project. i.e main or master'
     required: false
-    default: 'master'
+    default: 'remotes/origin/master'
   github_token:
     description: 'github token'
     required: true
-  major_label:
-    description: 'label used to trigger major bump'
+  source:
+    description: 'what text shall we match against the following semver triggers, possible values: title, label'
     required: false
-    default: 'major'
-  minor_label:
-    description: 'label used to trigger minor bump'
+    default: 'title'
+  major_pattern:
+    description: 'regexp pattern used to trigger major bump against input source'
     required: false
-    default: 'minor'
-  patch_label:
-    description: 'label used to trigger patch bump'
+    default: /^major/i
+  minor_pattern:
+    description: 'regexp pattern used to trigger minor bump against input source'
     required: false
-    default: 'patch'
+    default: /^feat/i
+  patch_pattern:
+    description: 'regexp pattern used to trigger patch bump against input source'
+    required: false
+    default: /^fix/i
+  package_json_path:
+    description: 'package.json location from where we determine current version, package.json in repo root by default'
+    required: false
+  previous_version:
+    description: 'Previous version to be used, which would override any version value from package.json'
 outputs:
   previous_version:
-    description: 'Previous version in package.json'
+    description: 'Previous version in package.json for the actual branch'
+  previous_version_master:
+    description: 'Previous version in package.json for the master branch'
   new_version:
-    description: 'New version in package.json'  
+    description: 'New version in package.json'
 runs:
   using: 'node12'
   main: 'dist/index.js'
