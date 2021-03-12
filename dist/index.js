@@ -139,6 +139,8 @@ async function run() {
     }
 
     // config
+    await execCommand('git', ['fetch', `--all`], console.log);
+
     const packageJSON = await execCommand('git', ['show', `${defaultBranch}:${pathToPackage}`], JSON.parse);
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`package.json ${JSON.stringify(packageJSON)}`)
     const previousVersion = previousVersionInput || packageJSON.version;
