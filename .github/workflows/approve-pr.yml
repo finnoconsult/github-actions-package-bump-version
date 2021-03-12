@@ -17,6 +17,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - run: |
+        npm install
+
     - uses: finnoconsult/github-actions-package-bump-version@feature/initial
       id: bumpVersion
       with:
