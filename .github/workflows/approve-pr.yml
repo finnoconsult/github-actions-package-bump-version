@@ -34,16 +34,15 @@ jobs:
         message: 'CI: bump package version, affer stale approvals by ${{github.event.review.user.login}} [skip ci]'
         add: '* --force'
 
-    - uses: hmarr/auto-approve-action@v2.0.0
-      if: steps.bumpVersion.outputs.previous_version != steps.bumpVersion.outputs.new_version
-      with:
-        github-token: "${{ secrets.GITHUB_TOKEN }}"
+    # - uses: hmarr/auto-approve-action@v2.0.0
+    #   if: steps.bumpVersion.outputs.previous_version != steps.bumpVersion.outputs.new_version
+    #   with:
+    #     github-token: "${{ secrets.GITHUB_TOKEN }}"
 
-    # - uses: reitermarkus/automerge@v1
-    #     with:
-    #       token: ${{ secrets.MY_GITHUB_TOKEN }}
-    #       merge-method: rebase
-    #       do-not-merge-labels: never-merge
-    #       required-labels: automerge
-    #       pull-request: ${{ github.event.inputs.pull-request }}
-    #       dry-run: true
+    - uses: reitermarkus/automerge@v1
+        with:
+          token: ${{ secrets.MY_GITHUB_TOKEN }}
+          merge-method: rebase
+          do-not-merge-labels: never-merge
+          pull-request: ${{ github.event.inputs.pull-request }}
+          dry-run: true
