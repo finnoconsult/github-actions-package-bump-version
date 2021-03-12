@@ -20,7 +20,7 @@ const getPR = async () => {
     });
     core.debug(`pr meta: ${pr.number} ${pr.state}: ${pr.title}|${pr.body}`);
     core.debug(`pr labels: ${JSON.stringify(pr.labels)}`);
-    core.debug(`pr data ${JSON.stringify(pr.requested_reviewers)}`);
+    core.debug(`pr requested_reviewers ${JSON.stringify(pr.requested_reviewers)}`);
 
     // console.log('returning pr data', pr);
     return pr;
@@ -28,6 +28,18 @@ const getPR = async () => {
     core.setFailed(`Could not retrieve pr: ${error}`)
     return {}
   }
+}
+
+const validateCommandResults = ({output, error}) => {
+  if (error !== '') {
+    core.setFailed(`Error getting package.json: ${error}`)
+  }
+
+  if (output === '') {
+    core.setFailed('Error: package.json is empty')
+  }
+
+  return output
 }
 
 
