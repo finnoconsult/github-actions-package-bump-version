@@ -176,8 +176,8 @@ async function run() {
 
     const inputMappedToVersion = {
       major: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('major_pattern') || '/^major/i',
-      minor: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('minor_pattern') || '/^major/i',
-      patch: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('patch_pattern') || '/^major/i',
+      minor: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('minor_pattern') || '/^feat/i',
+      patch: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('patch_pattern') || '/^fix/i',
     }
 
     // config
