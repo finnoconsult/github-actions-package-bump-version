@@ -149,8 +149,8 @@ async function run() {
 
     const inputMappedToVersion = {
       major: core.getInput('major_pattern') || '/^major/i',
-      minor: core.getInput('minor_pattern') || '/^major/i',
-      patch: core.getInput('patch_pattern') || '/^major/i',
+      minor: core.getInput('minor_pattern') || '/^feat/i',
+      patch: core.getInput('patch_pattern') || '/^fix/i',
     }
 
     // config
