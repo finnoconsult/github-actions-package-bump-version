@@ -15,6 +15,9 @@ inputs:
     description: 'what text shall we match against the following semver triggers, possible values: title, label'
     required: false
     default: 'title'
+  pull_request:
+    description: 'PR number, if not given, context.issue.number is used'
+    required: false
   major_pattern:
     description: 'regexp pattern used to trigger major bump against input source'
     required: false

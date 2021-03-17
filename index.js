@@ -11,12 +11,13 @@ const workspace = process.env.GITHUB_WORKSPACE
 export const getPRCommits = async() => {
   // TODO: DRY!
   const token = core.getInput('github_token', {required: true});
+  const prNumber = core.getInput('pull_request', {required: true});
   const octokit = new github.getOctokit(token);
   const context = github.context;
   const prInfo = {
     owner: context.issue.owner,
     repo: context.issue.repo,
-    pull_number: context.issue.number
+    pull_number: prNumber || context.issue.number
   };
   const { data: commits } = await octokit.pulls.listCommits(prInfo);
   return commits;
@@ -24,12 +25,13 @@ export const getPRCommits = async() => {
 
 const getPR = async () => {
   const token = core.getInput('github_token', {required: true});
+  const prNumber = core.getInput('pull_request', {required: true});
   const octokit = new github.getOctokit(token);
   const context = github.context;
   const prInfo = {
     owner: context.issue.owner,
     repo: context.issue.repo,
-    pull_number: context.issue.number
+    pull_number: prNumber || context.issue.number
   };
   try {
     const { data: pr } = await octokit.pulls.get(prInfo);
@@ -147,8 +149,8 @@ async function run() {
 
     const inputMappedToVersion = {
       major: core.getInput('major_pattern') || '/^major/i',
-      minor: core.getInput('minor_pattern') || '/^major/i',
-      patch: core.getInput('patch_pattern') || '/^major/i',
+      minor: core.getInput('minor_pattern') || '/^feat/i',
+      patch: core.getInput('patch_pattern') || '/^fix/i',
     }
 
     // config
