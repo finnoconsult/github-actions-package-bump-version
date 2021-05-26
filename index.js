@@ -25,7 +25,7 @@ export const getPRCommits = async() => {
 
 const getPR = async () => {
   const token = core.getInput('github_token', {required: true});
-  const prNumber = core.getInput('pull_request', {required: true});
+  const prNumber = core.getInput('pull_request', {required: false});
   const octokit = new github.getOctokit(token);
   const context = github.context;
   const prInfo = {
