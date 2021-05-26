@@ -214,8 +214,8 @@ async function run() {
 
 
     try {
-      packageJSONMaster.version = newVersion
-      fs__WEBPACK_IMPORTED_MODULE_5___default().writeFileSync(pathToPackage, JSON.stringify(packageJSONMaster, null, 2))
+      packageJSONLocal.version = newVersion
+      fs__WEBPACK_IMPORTED_MODULE_5___default().writeFileSync(pathToPackage, JSON.stringify(packageJSONLocal, null, 2))
     } catch (error) {
       _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(`Error writing package.json: ${error.message}`)
       return
