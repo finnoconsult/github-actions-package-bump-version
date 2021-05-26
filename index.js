@@ -11,7 +11,7 @@ const workspace = process.env.GITHUB_WORKSPACE
 export const getPRCommits = async() => {
   // TODO: DRY!
   const token = core.getInput('github_token', {required: true});
-  const prNumber = core.getInput('pull_request', {required: true});
+  const prNumber = core.getInput('pull_request', {required: false});
   const octokit = new github.getOctokit(token);
   const context = github.context;
   const prInfo = {
