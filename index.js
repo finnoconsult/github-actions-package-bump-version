@@ -187,8 +187,8 @@ async function run() {
 
 
     try {
-      packageJSONMaster.version = newVersion
-      fs.writeFileSync(pathToPackage, JSON.stringify(packageJSONMaster, null, 2))
+      packageJSONLocal.version = newVersion
+      fs.writeFileSync(pathToPackage, JSON.stringify(packageJSONLocal, null, 2))
     } catch (error) {
       core.setFailed(`Error writing package.json: ${error.message}`)
       return
