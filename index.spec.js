@@ -66,11 +66,12 @@ describe('test makeRegex', () => {
 
 describe('with i', () => {
   const types = {
-    major: '/^major\//i',
+    major: '/^(major|release)\//i',
     minor: '/^feat\//i',
     patch: '/^fix\//i',
   }
   it('major', () => expect(getBumpTypes(['Major/sometitle'], types)).toEqual(['major']));
+  it('release', () => expect(getBumpTypes(['release/sometitle'], types)).toEqual(['release']));
   it('minor', () => expect(getBumpTypes(['feature', 'not relevant', 'nothing'], types)).not.toEqual(['minor']));
   it('minor', () => expect(getBumpTypes(['Feat/ure', 'not relevant', 'nothing'], types)).toEqual(['minor']));
   it('minor', () => expect(getBumpTypes(['Feat/sometitle'], types)).toEqual(['minor']));

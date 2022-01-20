@@ -148,7 +148,7 @@ async function run() {
     const source = core.getInput('source');
 
     const inputMappedToVersion = {
-      major: core.getInput('major_pattern') || '/^major/i',
+      major: core.getInput('major_pattern') || '/^(major|release)/i',
       minor: core.getInput('minor_pattern') || '/^feat/i',
       patch: core.getInput('patch_pattern') || '/^fix/i',
     }
