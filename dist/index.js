@@ -163,10 +163,24 @@ const getBumpTypes = (sourceArray, bumpTypes) => {
   return found;
 }
 
+function getPreviousVersion(type, master, local) {
+  switch (`${type || ''}`.toLowerCase()) {
+    case 'default_branch':
+    case '':
+      return master;
+    case 'current_branch':
+    case 'local_branch':
+      return local;
+    default:
+      return type;
+  }
+
+}
+
 async function run() {
   try {
     // input
-    const previousVersionInput = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('previous_version');
+    const previousVersionInput = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('previous_version') || '';
 
     const pathToPackage = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('package_json_path') || path__WEBPACK_IMPORTED_MODULE_4___default().join(workspace, 'package.json')
 
@@ -187,7 +201,7 @@ async function run() {
     const packageJSONMaster = await getPackageJSONMaster(`${defaultBranch}:${pathToPackage}`);
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`master package.json ${JSON.stringify(packageJSONMaster)}`)
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`local package.json ${JSON.stringify(packageJSONLocal)}`)
-    const previousVersionMaster = previousVersionInput || packageJSONMaster.version;
+    const previousVersion = getPreviousVersion(previousVersionInput, packageJSONMaster.version, packageJSONLocal.version);
     const previousVersionLocal = previousVersionInput || packageJSONLocal.version;
 
     const textArray = await getSource(source);
@@ -209,8 +223,8 @@ async function run() {
 
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`Release type: ${releaseType}`)
 
-    const newVersion = semver__WEBPACK_IMPORTED_MODULE_3__.inc(previousVersionMaster, releaseType)
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`Bumping ${previousVersionMaster} to ${newVersion}`)
+    const newVersion = semver__WEBPACK_IMPORTED_MODULE_3__.inc(previousVersion, releaseType)
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`Bumping ${previousVersion} to ${newVersion}`)
 
 
     try {
@@ -221,7 +235,7 @@ async function run() {
       return
     }
 
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('previous_version_master', previousVersionMaster)
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('previous_version_master', previousVersion)
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('previous_version', previousVersionLocal)
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('new_version', newVersion)
 
