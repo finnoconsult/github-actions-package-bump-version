@@ -44,9 +44,10 @@ const getPR = async () => {
 
     core.setOutput('pr', pr);
 
-    // const commits = await getPRCommits(prInfo);
-    // core.setOutput('first_commit_sha', commits && commits[0].sha);
-    // core.setOutput('commits', commits);
+    const commits = await getPRCommits(prInfo);
+    core.setOutput('commits', commits);
+    core.setOutput('first_commit', commits && commits[0]);
+    core.setOutput('last_commit', commits && commits[commits.length-1]);
 
     return pr;
   } catch (error) {
