@@ -34,7 +34,7 @@ inputs:
     description: 'package.json location from where we determine current version, package.json in repo root by default'
     required: false
   previous_version:
-    description: 'Previous version to be used, which would override any version value from package.json'
+    description: 'Previous version to be used, which would override any version value from package.json. You can use `default_branch`, `current_branch` constant literals or give anything else in *semver* format. '
 outputs:
   previous_version:
     description: 'Previous version in package.json for the actual branch'

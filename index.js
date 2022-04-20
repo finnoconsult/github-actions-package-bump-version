@@ -136,10 +136,24 @@ export const getBumpTypes = (sourceArray, bumpTypes) => {
   return found;
 }
 
+function getPreviousVersion(type, master, local) {
+  switch (`${type || ''}`.toLowerCase()) {
+    case 'default_branch':
+    case '':
+      return master;
+    case 'current_branch':
+    case 'local_branch':
+      return local;
+    default:
+      return type;
+  }
+
+}
+
 async function run() {
   try {
     // input
-    const previousVersionInput = core.getInput('previous_version');
+    const previousVersionInput = core.getInput('previous_version') || '';
 
     const pathToPackage = core.getInput('package_json_path') || path.join(workspace, 'package.json')
 
@@ -160,7 +174,7 @@ async function run() {
     const packageJSONMaster = await getPackageJSONMaster(`${defaultBranch}:${pathToPackage}`);
     core.debug(`master package.json ${JSON.stringify(packageJSONMaster)}`)
     core.debug(`local package.json ${JSON.stringify(packageJSONLocal)}`)
-    const previousVersionMaster = previousVersionInput || packageJSONMaster.version;
+    const previousVersion = getPreviousVersion(previousVersionInput, packageJSONMaster.version, packageJSONLocal.version);
     const previousVersionLocal = previousVersionInput || packageJSONLocal.version;
 
     const textArray = await getSource(source);
@@ -182,8 +196,8 @@ async function run() {
 
     core.debug(`Release type: ${releaseType}`)
 
-    const newVersion = semver.inc(previousVersionMaster, releaseType)
-    core.debug(`Bumping ${previousVersionMaster} to ${newVersion}`)
+    const newVersion = semver.inc(previousVersion, releaseType)
+    core.debug(`Bumping ${previousVersion} to ${newVersion}`)
 
 
     try {
@@ -194,7 +208,7 @@ async function run() {
       return
     }
 
-    core.setOutput('previous_version_master', previousVersionMaster)
+    core.setOutput('previous_version_master', previousVersion)
     core.setOutput('previous_version', previousVersionLocal)
     core.setOutput('new_version', newVersion)
 
