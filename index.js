@@ -8,7 +8,7 @@ import fs from 'fs'
 const workspace = process.env.GITHUB_WORKSPACE
 
 
-export const getPRCommits = async() => {
+export const getPRCommits = async() => {
   // TODO: DRY!
   const token = core.getInput('github_token', {required: true});
   const prNumber = core.getInput('pull_request');
@@ -45,7 +45,7 @@ const getPR = async () => {
     core.setOutput('pr', pr);
 
     // const commits = await getPRCommits(prInfo);
-    // core.setOutput('first_commit_sha', commits && commits[0].sha);
+    // core.setOutput('first_commit_sha', commits && commits[0].sha);
     // core.setOutput('commits', commits);
 
     return pr;
@@ -91,12 +91,12 @@ const execCommand = async (command, args, callback) => {
 }
 
 const getPackageJSONMaster = async (pathToPackage) => {
-  const content = await execCommand('git', ['show', pathToPackage], JSON.parse);
+  const content = await execCommand('git', ['show', pathToPackage], JSON.parse);
   return content;
 }
 
 const getPackageJSONLocal = async (pathToPackage) => {
-  const content = await execCommand('cat', [pathToPackage], JSON.parse);
+  const content = await execCommand('cat', [pathToPackage], JSON.parse);
   return content;
 }
 
@@ -118,19 +118,19 @@ export const parseRegex = (regexString) => {
   return new RegExp(regexString);
 }
 
-export const matchString = (source, regexString) => {
+export const matchString = (source, regexString) => {
   const regex = parseRegex(regexString);
   return source.match(regex);
 }
 
 
-export const getBumpTypes = (sourceArray, bumpTypes) => {
+export const getBumpTypes = (sourceArray, bumpTypes) => {
   core.debug(`Valid bumps are: ${JSON.stringify(bumpTypes)}`)
   core.debug(`sourceArray: ${JSON.stringify(sourceArray)}`)
 
   const found = Object.entries(bumpTypes)
-    .filter(([, regex]) => sourceArray.find(source =>matchString(source,regex)))
-    .map(([type]) => type);
+    .filter(([, regex]) => sourceArray.find(source =>matchString(source,regex)))
+    .map(([type]) => type);
 
   core.info(`bumpTypes identified: ${JSON.stringify(found)}`);
   return found;
@@ -141,7 +141,7 @@ async function run() {
     // input
     const previousVersionInput = core.getInput('previous_version');
 
-    const pathToPackage = core.getInput('package_json_path') || path.join(workspace, 'package.json')
+    const pathToPackage = core.getInput('package_json_path') || path.join(workspace, 'package.json')
 
     const defaultBranch = core.getInput('default_branch') || 'remotes/origin/master';
 
