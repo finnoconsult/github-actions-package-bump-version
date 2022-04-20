@@ -71,9 +71,10 @@ const getPR = async () => {
 
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('pr', pr);
 
-    // const commits = await getPRCommits(prInfo);
-    // core.setOutput('first_commit_sha', commits && commits[0].sha);
-    // core.setOutput('commits', commits);
+    const commits = await getPRCommits(prInfo);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('commits', commits);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('first_commit', commits && commits[0]);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('last_commit', commits && commits[commits.length-1]);
 
     return pr;
   } catch (error) {
