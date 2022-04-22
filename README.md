@@ -22,7 +22,7 @@ Forked from https://github.com/copapow/version-bump-package
         source: title       # optional - default = title
         default_branch: remotes/origin/master       # optional - default = remotes/origin/master
         package_json_path: package.json       # optional - default = package.json
-        previous_version:        # optional - default =
+        previous_version:  /^default_branch|current_branch|\d+\.\d+\.\d+/ # optional - default = default_branch
         github_token: ${{ secrets.GITHUB_TOKEN }} # required
 - run: |
     echo "Previous version: ${{ steps.bump.outputs.previous_version }}"

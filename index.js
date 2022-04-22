@@ -8,7 +8,7 @@ import fs from 'fs'
 const workspace = process.env.GITHUB_WORKSPACE
 
 
-export const getPRCommits = async() => {
+export const getPRCommits = async() => {
   // TODO: DRY!
   const token = core.getInput('github_token', {required: true});
   const prNumber = core.getInput('pull_request');
@@ -44,9 +44,10 @@ const getPR = async () => {
 
     core.setOutput('pr', pr);
 
-    // const commits = await getPRCommits(prInfo);
-    // core.setOutput('first_commit_sha', commits && commits[0].sha);
-    // core.setOutput('commits', commits);
+    const commits = await getPRCommits(prInfo);
+    core.setOutput('commits', commits);
+    core.setOutput('first_commit', commits && commits[0]);
+    core.setOutput('last_commit', commits && commits[commits.length-1]);
 
     return pr;
   } catch (error) {
@@ -91,12 +92,12 @@ const execCommand = async (command, args, callback) => {
 }
 
 const getPackageJSONMaster = async (pathToPackage) => {
-  const content = await execCommand('git', ['show', pathToPackage], JSON.parse);
+  const content = await execCommand('git', ['show', pathToPackage], JSON.parse);
   return content;
 }
 
 const getPackageJSONLocal = async (pathToPackage) => {
-  const content = await execCommand('cat', [pathToPackage], JSON.parse);
+  const content = await execCommand('cat', [pathToPackage], JSON.parse);
   return content;
 }
 
@@ -118,30 +119,44 @@ export const parseRegex = (regexString) => {
   return new RegExp(regexString);
 }
 
-export const matchString = (source, regexString) => {
+export const matchString = (source, regexString) => {
   const regex = parseRegex(regexString);
   return source.match(regex);
 }
 
 
-export const getBumpTypes = (sourceArray, bumpTypes) => {
+export const getBumpTypes = (sourceArray, bumpTypes) => {
   core.debug(`Valid bumps are: ${JSON.stringify(bumpTypes)}`)
   core.debug(`sourceArray: ${JSON.stringify(sourceArray)}`)
 
   const found = Object.entries(bumpTypes)
-    .filter(([, regex]) => sourceArray.find(source =>matchString(source,regex)))
-    .map(([type]) => type);
+    .filter(([, regex]) => sourceArray.find(source =>matchString(source,regex)))
+    .map(([type]) => type);
 
   core.info(`bumpTypes identified: ${JSON.stringify(found)}`);
   return found;
 }
 
+function getPreviousVersion(type, master, local) {
+  switch (`${type || ''}`.toLowerCase()) {
+    case 'default_branch':
+    case '':
+      return master;
+    case 'current_branch':
+    case 'local_branch':
+      return local;
+    default:
+      return type;
+  }
+
+}
+
 async function run() {
   try {
     // input
-    const previousVersionInput = core.getInput('previous_version');
+    const previousVersionInput = core.getInput('previous_version') || '';
 
-    const pathToPackage = core.getInput('package_json_path') || path.join(workspace, 'package.json')
+    const pathToPackage = core.getInput('package_json_path') || path.join(workspace, 'package.json')
 
     const defaultBranch = core.getInput('default_branch') || 'remotes/origin/master';
 
@@ -160,7 +175,7 @@ async function run() {
     const packageJSONMaster = await getPackageJSONMaster(`${defaultBranch}:${pathToPackage}`);
     core.debug(`master package.json ${JSON.stringify(packageJSONMaster)}`)
     core.debug(`local package.json ${JSON.stringify(packageJSONLocal)}`)
-    const previousVersionMaster = previousVersionInput || packageJSONMaster.version;
+    const previousVersion = getPreviousVersion(previousVersionInput, packageJSONMaster.version, packageJSONLocal.version);
     const previousVersionLocal = previousVersionInput || packageJSONLocal.version;
 
     const textArray = await getSource(source);
@@ -182,8 +197,8 @@ async function run() {
 
     core.debug(`Release type: ${releaseType}`)
 
-    const newVersion = semver.inc(previousVersionMaster, releaseType)
-    core.debug(`Bumping ${previousVersionMaster} to ${newVersion}`)
+    const newVersion = semver.inc(previousVersion, releaseType)
+    core.debug(`Bumping ${previousVersion} to ${newVersion}`)
 
 
     try {
@@ -194,7 +209,7 @@ async function run() {
       return
     }
 
-    core.setOutput('previous_version_master', previousVersionMaster)
+    core.setOutput('previous_version_master', previousVersion)
     core.setOutput('previous_version', previousVersionLocal)
     core.setOutput('new_version', newVersion)
 

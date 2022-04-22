@@ -35,7 +35,7 @@ __nccwpck_require__.r(__webpack_exports__);
 const workspace = process.env.GITHUB_WORKSPACE
 
 
-const getPRCommits = async() => {
+const getPRCommits = async() => {
   // TODO: DRY!
   const token = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('github_token', {required: true});
   const prNumber = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('pull_request');
@@ -71,9 +71,10 @@ const getPR = async () => {
 
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('pr', pr);
 
-    // const commits = await getPRCommits(prInfo);
-    // core.setOutput('first_commit_sha', commits && commits[0].sha);
-    // core.setOutput('commits', commits);
+    const commits = await getPRCommits(prInfo);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('commits', commits);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('first_commit', commits && commits[0]);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('last_commit', commits && commits[commits.length-1]);
 
     return pr;
   } catch (error) {
@@ -118,12 +119,12 @@ const execCommand = async (command, args, callback) => {
 }
 
 const getPackageJSONMaster = async (pathToPackage) => {
-  const content = await execCommand('git', ['show', pathToPackage], JSON.parse);
+  const content = await execCommand('git', ['show', pathToPackage], JSON.parse);
   return content;
 }
 
 const getPackageJSONLocal = async (pathToPackage) => {
-  const content = await execCommand('cat', [pathToPackage], JSON.parse);
+  const content = await execCommand('cat', [pathToPackage], JSON.parse);
   return content;
 }
 
@@ -145,30 +146,44 @@ const parseRegex = (regexString) => {
   return new RegExp(regexString);
 }
 
-const matchString = (source, regexString) => {
+const matchString = (source, regexString) => {
   const regex = parseRegex(regexString);
   return source.match(regex);
 }
 
 
-const getBumpTypes = (sourceArray, bumpTypes) => {
+const getBumpTypes = (sourceArray, bumpTypes) => {
   _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`Valid bumps are: ${JSON.stringify(bumpTypes)}`)
   _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`sourceArray: ${JSON.stringify(sourceArray)}`)
 
   const found = Object.entries(bumpTypes)
-    .filter(([, regex]) => sourceArray.find(source =>matchString(source,regex)))
-    .map(([type]) => type);
+    .filter(([, regex]) => sourceArray.find(source =>matchString(source,regex)))
+    .map(([type]) => type);
 
   _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`bumpTypes identified: ${JSON.stringify(found)}`);
   return found;
 }
 
+function getPreviousVersion(type, master, local) {
+  switch (`${type || ''}`.toLowerCase()) {
+    case 'default_branch':
+    case '':
+      return master;
+    case 'current_branch':
+    case 'local_branch':
+      return local;
+    default:
+      return type;
+  }
+
+}
+
 async function run() {
   try {
     // input
-    const previousVersionInput = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('previous_version');
+    const previousVersionInput = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('previous_version') || '';
 
-    const pathToPackage = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('package_json_path') || path__WEBPACK_IMPORTED_MODULE_4___default().join(workspace, 'package.json')
+    const pathToPackage = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('package_json_path') || path__WEBPACK_IMPORTED_MODULE_4___default().join(workspace, 'package.json')
 
     const defaultBranch = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('default_branch') || 'remotes/origin/master';
 
@@ -187,7 +202,7 @@ async function run() {
     const packageJSONMaster = await getPackageJSONMaster(`${defaultBranch}:${pathToPackage}`);
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`master package.json ${JSON.stringify(packageJSONMaster)}`)
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`local package.json ${JSON.stringify(packageJSONLocal)}`)
-    const previousVersionMaster = previousVersionInput || packageJSONMaster.version;
+    const previousVersion = getPreviousVersion(previousVersionInput, packageJSONMaster.version, packageJSONLocal.version);
     const previousVersionLocal = previousVersionInput || packageJSONLocal.version;
 
     const textArray = await getSource(source);
@@ -209,8 +224,8 @@ async function run() {
 
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`Release type: ${releaseType}`)
 
-    const newVersion = semver__WEBPACK_IMPORTED_MODULE_3__.inc(previousVersionMaster, releaseType)
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`Bumping ${previousVersionMaster} to ${newVersion}`)
+    const newVersion = semver__WEBPACK_IMPORTED_MODULE_3__.inc(previousVersion, releaseType)
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`Bumping ${previousVersion} to ${newVersion}`)
 
 
     try {
@@ -221,7 +236,7 @@ async function run() {
       return
     }
 
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('previous_version_master', previousVersionMaster)
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('previous_version_master', previousVersion)
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('previous_version', previousVersionLocal)
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('new_version', newVersion)
 
